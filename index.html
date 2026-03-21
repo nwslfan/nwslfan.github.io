@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NWSL Fantasy 2026</title>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { box-sizing: border-box; }
+        body { background: #090d1a; font-family: system-ui, -apple-system, sans-serif; margin: 0; }
+
+        .page-bg {
+            min-height: 100vh;
+            background: linear-gradient(160deg, #090d1a 0%, #130820 60%, #090d1a 100%);
+        }
+
+        .card {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 1rem;
+        }
+
+        .card-inset {
+            background: rgba(0,0,0,0.2);
+            border-top: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #cd7c2e, #92400e); color: white; }
+        .rank-other { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); }
+
+        .leader-bar { height: 5px; border-radius: 3px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
+
+        .pick-bar { height: 4px; border-radius: 2px; transition: width 0.5s ease; }
+
+        .bonus-pill {
+            background: linear-gradient(135deg, #7c3aed, #a855f7);
+            font-size: 0.6rem;
+            padding: 2px 6px;
+            border-radius: 999px;
+            color: white;
+            line-height: 1.4;
+        }
+
+        .week-pill {
+            padding: 4px 14px;
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+        .week-pill-active { background: #e91e8c; color: white; }
+        .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
+        .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
+
+        .demo-banner {
+            background: rgba(245,158,11,0.1);
+            border: 1px solid rgba(245,158,11,0.2);
+            border-radius: 0.75rem;
+            color: rgba(245,158,11,0.8);
+            font-size: 0.75rem;
+            padding: 10px 14px;
+            margin-bottom: 1.5rem;
+        }
+
+        .error-banner {
+            background: rgba(239,68,68,0.1);
+            border: 1px solid rgba(239,68,68,0.2);
+            border-radius: 0.75rem;
+            color: rgba(239,68,68,0.8);
+            font-size: 0.75rem;
+            padding: 10px 14px;
+            margin-bottom: 1.5rem;
+        }
+
+        .payout-amount { font-variant-numeric: tabular-nums; }
+    </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo } = React;
+
+// ================================================================
+// CONFIGURATION
+// ================================================================
+// League settings
+const CONFIG = {
+    leagueName: "Rachel's NWSL Fantasy League",
+    season: "2026",
+    entryFee: 5,              // $ per player
+    bonusThreshold: 0.30,     // bonus point if < 30% of players picked the winner
+    payoutPct: [0.60, 0.30, 0.10],  // 1st, 2nd, 3rd
+};
+
+// Google Sheet URLs (CSV export format)
+// To set up:
+//   1. Create a Google Sheet with two tabs: "picks" and "results"
+//   2. Share the sheet: File → Share → Anyone with link can view
+//   3. Get the CSV export URL for each tab:
+//      https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_TAB_GID
+//   4. Paste the URLs below
+//
+// "picks" tab columns: player, week, home, away, pick
+//   pick = home team name, away team name, or "Draw"
+//
+// "results" tab columns: week, home, away, result
+//   result = home team name, away team name, or "Draw"
+const PICKS_URL = '';
+const RESULTS_URL = '';
+
+
+// ================================================================
+// DEMO DATA (shown when URLs above are not configured)
+// ================================================================
+const DEMO_PICKS = [
+    { player: 'Rachel',  week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
+    { player: 'Rachel',  week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
+    { player: 'Rachel',  week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
+    { player: 'Rachel',  week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
+    { player: 'Mia',     week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Kansas City Current' },
+    { player: 'Mia',     week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
+    { player: 'Mia',     week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
+    { player: 'Mia',     week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
+    { player: 'Jordan',  week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
+    { player: 'Jordan',  week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
+    { player: 'Jordan',  week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Washington Spirit' },
+    { player: 'Jordan',  week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'Seattle Reign' },
+    { player: 'Casey',   week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
+    { player: 'Casey',   week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
+    { player: 'Casey',   week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
+    { player: 'Casey',   week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
+    { player: 'Alex',    week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Draw' },
+    { player: 'Alex',    week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
+    { player: 'Alex',    week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
+    { player: 'Alex',    week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'Seattle Reign' },
+    // Week 2
+    { player: 'Rachel',  week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
+    { player: 'Rachel',  week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
+    { player: 'Rachel',  week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Draw' },
+    { player: 'Mia',     week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
+    { player: 'Mia',     week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Orlando Pride' },
+    { player: 'Mia',     week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Washington Spirit' },
+    { player: 'Jordan',  week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
+    { player: 'Jordan',  week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
+    { player: 'Jordan',  week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Chicago Red Stars' },
+    { player: 'Casey',   week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
+    { player: 'Casey',   week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
+    { player: 'Casey',   week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Draw' },
+    { player: 'Alex',    week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
+    { player: 'Alex',    week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Orlando Pride' },
+    { player: 'Alex',    week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Chicago Red Stars' },
+];
+
+const DEMO_RESULTS = [
+    { week: 1, home: 'Portland Thorns',   away: 'Kansas City Current', result: 'Portland Thorns' },
+    { week: 1, home: 'Chicago Red Stars', away: 'NJ/NY Gotham FC',     result: 'NJ/NY Gotham FC' },
+    { week: 1, home: 'Orlando Pride',     away: 'Washington Spirit',   result: 'Orlando Pride' },
+    { week: 1, home: 'Seattle Reign',     away: 'San Diego Wave',      result: 'San Diego Wave' },
+    { week: 2, home: 'Portland Thorns',   away: 'NJ/NY Gotham FC',     result: 'Portland Thorns' },
+    // Week 2 remaining matches pending
+];
+
+
+// ================================================================
+// CSV PARSING
+// ================================================================
+function parsePicks(csv) {
+    const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+    return data.map(r => ({
+        player: (r.player || r.Player || '').trim(),
+        week: parseInt(r.week || r.Week),
+        home: (r.home || r.Home || '').trim(),
+        away: (r.away || r.Away || '').trim(),
+        pick: (r.pick || r.Pick || '').trim(),
+    })).filter(r => r.player && !isNaN(r.week) && r.home && r.away && r.pick);
+}
+
+function parseResults(csv) {
+    const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
+    return data.map(r => ({
+        week: parseInt(r.week || r.Week),
+        home: (r.home || r.Home || '').trim(),
+        away: (r.away || r.Away || '').trim(),
+        result: (r.result || r.Result || '').trim(),
+    })).filter(r => !isNaN(r.week) && r.home && r.away && r.result);
+}
+
+
+// ================================================================
+// SCORING ENGINE
+// ================================================================
+function matchKey(week, home, away) {
+    return `${week}|${home}|${away}`;
+}
+
+function computeStandings(picks, results) {
+    const weeks = [...new Set(picks.map(p => p.week))].sort((a, b) => a - b);
+    const players = [...new Set(picks.map(p => p.player))].sort();
+
+    // Index results
+    const resultMap = {};
+    results.forEach(r => {
+        resultMap[matchKey(r.week, r.home, r.away)] = r.result;
+    });
+
+    // Pick distribution per match: { [outcome]: count, total: N }
+    const pickDist = {};
+    picks.forEach(p => {
+        const key = matchKey(p.week, p.home, p.away);
+        if (!pickDist[key]) pickDist[key] = { total: 0 };
+        pickDist[key][p.pick] = (pickDist[key][p.pick] || 0) + 1;
+        pickDist[key].total++;
+    });
+
+    // Per-player, per-week data
+    const playerWeeks = {};
+    players.forEach(player => {
+        playerWeeks[player] = {};
+        weeks.forEach(w => {
+            playerWeeks[player][w] = { correct: 0, bonus: 0, picks: [] };
+        });
+    });
+
+    picks.forEach(p => {
+        const key = matchKey(p.week, p.home, p.away);
+        const result = resultMap[key];
+        const dist = pickDist[key] || { total: 0 };
+        const correct = result !== undefined && p.pick === result;
+        const pct = dist.total > 0 ? (dist[p.pick] || 0) / dist.total : 1;
+        const isBonus = correct && pct < CONFIG.bonusThreshold;
+
+        if (!playerWeeks[p.player]) playerWeeks[p.player] = {};
+        if (!playerWeeks[p.player][p.week]) playerWeeks[p.player][p.week] = { correct: 0, bonus: 0, picks: [] };
+
+        if (correct) playerWeeks[p.player][p.week].correct++;
+        if (isBonus) playerWeeks[p.player][p.week].bonus++;
+        playerWeeks[p.player][p.week].picks.push({
+            home: p.home, away: p.away, pick: p.pick,
+            result: result !== undefined ? result : null,
+            correct, isBonus, pct,
+        });
+    });
+
+    // Weekly winners: player(s) with highest (correct + bonus) that week
+    const weeklyWinners = {};
+    weeks.forEach(w => {
+        const scored = players.map(p => ({
+            player: p,
+            pts: (playerWeeks[p]?.[w]?.correct || 0) + (playerWeeks[p]?.[w]?.bonus || 0),
+        }));
+        const max = Math.max(...scored.map(x => x.pts));
+        weeklyWinners[w] = max > 0 ? scored.filter(x => x.pts === max).map(x => x.player) : [];
+    });
+
+    // Overall standings
+    const standings = players.map(player => {
+        const totalCorrect = weeks.reduce((s, w) => s + (playerWeeks[player]?.[w]?.correct || 0), 0);
+        const totalBonus = weeks.reduce((s, w) => s + (playerWeeks[player]?.[w]?.bonus || 0), 0);
+        const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
+        return { player, totalCorrect, totalBonus, weeklyWins, weeklyData: playerWeeks[player] };
+    });
+
+    // Sort: total pts DESC → correct picks DESC → weekly wins DESC → bonus DESC
+    standings.sort((a, b) => {
+        const ta = a.totalCorrect + a.totalBonus, tb = b.totalCorrect + b.totalBonus;
+        if (tb !== ta) return tb - ta;
+        if (b.totalCorrect !== a.totalCorrect) return b.totalCorrect - a.totalCorrect;
+        if (b.weeklyWins !== a.weeklyWins) return b.weeklyWins - a.weeklyWins;
+        return b.totalBonus - a.totalBonus;
+    });
+
+    return { standings, weeks, pickDist, resultMap, weeklyWinners };
+}
+
+
+// ================================================================
+// COMPONENTS
+// ================================================================
+
+function PrizePool({ playerCount }) {
+    const pool = playerCount * CONFIG.entryFee;
+    const payouts = CONFIG.payoutPct.map(pct => Math.floor(pool * pct));
+    const labels = ['1st', '2nd', '3rd'];
+    const colors = ['text-amber-400', 'text-slate-400', 'text-amber-700'];
+
+    return (
+        <div className="card p-5 mb-5">
+            <div className="text-white/40 text-xs uppercase tracking-widest mb-4">Prize Pool</div>
+            <div className="flex gap-3">
+                <div className="flex-1 text-center border-r border-white/10 pr-3">
+                    <div className="text-white text-2xl font-bold payout-amount">${pool}</div>
+                    <div className="text-white/30 text-xs mt-1">{playerCount} players</div>
+                </div>
+                {payouts.map((amt, i) => (
+                    <div key={i} className="flex-1 text-center">
+                        <div className={`text-xl font-bold payout-amount ${colors[i]}`}>${amt}</div>
+                        <div className="text-white/30 text-xs mt-1">{labels[i]}</div>
+                    </div>
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function Leaderboard({ standings }) {
+    const [expanded, setExpanded] = useState(null);
+    const maxPts = standings.length > 0
+        ? standings[0].totalCorrect + standings[0].totalBonus
+        : 1;
+
+    return (
+        <div className="card mb-5 overflow-hidden">
+            <div className="px-5 pt-5 pb-2">
+                <div className="text-white/40 text-xs uppercase tracking-widest">Standings</div>
+            </div>
+            {standings.map((s, i) => {
+                const total = s.totalCorrect + s.totalBonus;
+                const barPct = maxPts > 0 ? (total / maxPts) * 100 : 0;
+                const isOpen = expanded === s.player;
+                const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+
+                return (
+                    <div key={s.player}>
+                        <button
+                            onClick={() => setExpanded(isOpen ? null : s.player)}
+                            className="w-full px-5 py-3.5 flex items-center gap-3 border-t border-white/5 text-left"
+                            style={{ background: isOpen ? 'rgba(255,255,255,0.03)' : 'transparent' }}
+                        >
+                            {/* Rank */}
+                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankClass}`}>
+                                {i + 1}
+                            </div>
+
+                            {/* Name + bar */}
+                            <div className="flex-1 min-w-0">
+                                <div className="flex items-center gap-1.5 mb-1.5">
+                                    <span className="text-white font-medium text-sm truncate">{s.player}</span>
+                                    {s.weeklyWins > 0 && (
+                                        <span className="text-amber-400 text-xs flex-shrink-0">🏆 ×{s.weeklyWins}</span>
+                                    )}
+                                </div>
+                                <div className="bg-white/10 rounded-full overflow-hidden" style={{ height: 5 }}>
+                                    <div className="leader-bar bg-pink-500" style={{ width: `${barPct}%` }} />
+                                </div>
+                            </div>
+
+                            {/* Score */}
+                            <div className="text-right flex-shrink-0">
+                                <div className="text-white font-bold text-xl leading-none">{total}</div>
+                                <div className="text-white/30 text-xs mt-0.5">
+                                    {s.totalCorrect} + <span className="text-purple-400">{s.totalBonus}★</span>
+                                </div>
+                            </div>
+                        </button>
+
+                        {isOpen && <PickHistory weeklyData={s.weeklyData} />}
+                    </div>
+                );
+            })}
+        </div>
+    );
+}
+
+function PickHistory({ weeklyData }) {
+    const weeks = Object.keys(weeklyData).map(Number).sort((a, b) => a - b);
+    return (
+        <div className="card-inset px-5 py-4">
+            <div className="text-white/30 text-xs uppercase tracking-wider mb-3">Pick History</div>
+            <div className="space-y-4">
+                {weeks.map(w => {
+                    const wd = weeklyData[w];
+                    if (!wd || wd.picks.length === 0) return null;
+                    const wTotal = wd.correct + wd.bonus;
+                    return (
+                        <div key={w}>
+                            <div className="flex justify-between items-center mb-2">
+                                <span className="text-white/50 text-xs font-medium">Week {w}</span>
+                                <span className="text-white text-xs">
+                                    {wTotal} pt{wTotal !== 1 ? 's' : ''}
+                                    {wd.bonus > 0 && <span className="text-purple-400"> (+{wd.bonus} bonus)</span>}
+                                </span>
+                            </div>
+                            <div className="space-y-1.5">
+                                {wd.picks.map((pick, i) => (
+                                    <div key={i} className="flex items-center gap-2 text-xs">
+                                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-[9px]
+                                            ${pick.result === null ? 'bg-white/10 text-white/30'
+                                              : pick.correct ? 'bg-green-500/25 text-green-400'
+                                              : 'bg-red-500/20 text-red-400'}`}>
+                                            {pick.result === null ? '?' : pick.correct ? '✓' : '✗'}
+                                        </span>
+                                        <span className="text-white/40 truncate flex-1">{pick.home} vs {pick.away}</span>
+                                        <span className={`flex-shrink-0 font-medium
+                                            ${pick.correct ? 'text-green-400'
+                                              : pick.result === null ? 'text-white/30'
+                                              : 'text-red-400'}`}>
+                                            {pick.pick}
+                                        </span>
+                                        {pick.isBonus && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+function WeekSection({ week, picks, resultMap, pickDist, weeklyWinners }) {
+    const weekPicks = picks.filter(p => p.week === week);
+
+    // Deduplicate matches
+    const seen = new Set();
+    const matches = [];
+    weekPicks.forEach(p => {
+        const key = matchKey(week, p.home, p.away);
+        if (!seen.has(key)) {
+            seen.add(key);
+            matches.push({ home: p.home, away: p.away, key });
+        }
+    });
+
+    if (matches.length === 0) return (
+        <div className="card p-8 text-center text-white/30 text-sm mb-5">
+            No picks submitted for Week {week} yet.
+        </div>
+    );
+
+    const winners = weeklyWinners[week] || [];
+    const allResultsIn = matches.every(m => resultMap[m.key] !== undefined);
+    const someResultsIn = matches.some(m => resultMap[m.key] !== undefined);
+
+    return (
+        <div className="card mb-5 overflow-hidden">
+            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+                <div>
+                    <h2 className="text-white font-semibold">Week {week}</h2>
+                    <div className="text-white/30 text-xs mt-0.5">
+                        {allResultsIn ? 'All results in' : someResultsIn ? 'Results partial' : 'Awaiting results'}
+                    </div>
+                </div>
+                {winners.length > 0 && (
+                    <div className="text-amber-400 text-xs text-right">
+                        🏆 {winners.length === 1 ? winners[0] : `${winners.length}-way tie`}
+                    </div>
+                )}
+            </div>
+
+            <div className="divide-y divide-white/5">
+                {matches.map(({ home, away, key }) => {
+                    const result = resultMap[key];
+                    const dist = pickDist[key] || { total: 0 };
+                    const total = dist.total;
+                    const outcomes = [home, 'Draw', away];
+
+                    return (
+                        <div key={key} className="px-5 py-4">
+                            <div className="mb-3">
+                                <div className="text-white text-sm font-medium">
+                                    {home} <span className="text-white/25">vs</span> {away}
+                                </div>
+                                {result
+                                    ? <div className="text-green-400 text-xs mt-0.5">Result: {result}</div>
+                                    : <div className="text-white/25 text-xs mt-0.5">Pending</div>
+                                }
+                            </div>
+
+                            <div className="space-y-2">
+                                {outcomes.map(outcome => {
+                                    const count = dist[outcome] || 0;
+                                    const pct = total > 0 ? count / total : 0;
+                                    const isResult = outcome === result;
+                                    const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
+
+                                    return (
+                                        <div key={outcome} className="flex items-center gap-2.5">
+                                            <div className={`text-xs w-32 truncate flex-shrink-0
+                                                ${isResult ? 'text-green-400 font-semibold' : 'text-white/40'}`}>
+                                                {outcome}
+                                            </div>
+                                            <div className="flex-1 bg-white/10 rounded-full overflow-hidden" style={{ height: 4 }}>
+                                                <div className={`pick-bar ${isResult ? 'bg-green-500' : 'bg-white/20'}`}
+                                                    style={{ width: `${pct * 100}%` }} />
+                                            </div>
+                                            <div className="text-white/35 text-xs w-9 text-right flex-shrink-0">
+                                                {Math.round(pct * 100)}%
+                                            </div>
+                                            {isUnderdog && (
+                                                <span className="bonus-pill flex-shrink-0">★ bonus</span>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+        </div>
+    );
+}
+
+
+// ================================================================
+// MAIN APP
+// ================================================================
+function App() {
+    const [picks, setPicks] = useState(null);
+    const [results, setResults] = useState(null);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState('');
+    const [usingDemo, setUsingDemo] = useState(false);
+    const [activeWeek, setActiveWeek] = useState(null);
+
+    useEffect(() => {
+        async function load() {
+            if (!PICKS_URL || !RESULTS_URL) {
+                setPicks(DEMO_PICKS);
+                setResults(DEMO_RESULTS);
+                setUsingDemo(true);
+                setLoading(false);
+                return;
+            }
+            try {
+                const [pr, rr] = await Promise.all([fetch(PICKS_URL), fetch(RESULTS_URL)]);
+                if (!pr.ok || !rr.ok) throw new Error('Fetch failed');
+                const [pt, rt] = await Promise.all([pr.text(), rr.text()]);
+                setPicks(parsePicks(pt));
+                setResults(parseResults(rt));
+            } catch (e) {
+                setError('Could not load data. Check PICKS_URL and RESULTS_URL in the config, and make sure the sheet is public.');
+                setPicks(DEMO_PICKS);
+                setResults(DEMO_RESULTS);
+                setUsingDemo(true);
+            }
+            setLoading(false);
+        }
+        load();
+    }, []);
+
+    const computed = useMemo(() => {
+        if (!picks || !results) return null;
+        return computeStandings(picks, results);
+    }, [picks, results]);
+
+    // Default to latest week
+    const weeks = computed?.weeks || [];
+    const displayWeek = activeWeek ?? (weeks.length > 0 ? weeks[weeks.length - 1] : null);
+
+    if (loading) return (
+        <div className="page-bg min-h-screen flex items-center justify-center">
+            <div className="text-white/30 text-sm">Loading...</div>
+        </div>
+    );
+
+    return (
+        <div className="page-bg">
+            <div className="max-w-lg mx-auto px-4 py-8 pb-16">
+
+                {/* Header */}
+                <div className="text-center mb-8">
+                    <div className="text-pink-500 text-xs uppercase tracking-widest font-semibold mb-1">
+                        NWSL {CONFIG.season}
+                    </div>
+                    <h1 className="text-white text-2xl font-bold">{CONFIG.leagueName}</h1>
+                </div>
+
+                {/* Banners */}
+                {usingDemo && !error && (
+                    <div className="demo-banner">
+                        Showing demo data. Set <code className="font-mono">PICKS_URL</code> and <code className="font-mono">RESULTS_URL</code> at the top of this file to connect your Google Sheet.
+                    </div>
+                )}
+                {error && (
+                    <div className="error-banner">{error}</div>
+                )}
+
+                {computed && (
+                    <>
+                        <PrizePool playerCount={computed.standings.length} />
+                        <Leaderboard standings={computed.standings} />
+
+                        {/* Week selector */}
+                        {weeks.length > 0 && (
+                            <>
+                                <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
+                                    {weeks.map(w => (
+                                        <button
+                                            key={w}
+                                            onClick={() => setActiveWeek(w)}
+                                            className={`week-pill ${displayWeek === w ? 'week-pill-active' : 'week-pill-inactive'}`}
+                                        >
+                                            Week {w}
+                                        </button>
+                                    ))}
+                                </div>
+
+                                {displayWeek !== null && (
+                                    <WeekSection
+                                        week={displayWeek}
+                                        picks={picks}
+                                        resultMap={computed.resultMap}
+                                        pickDist={computed.pickDist}
+                                        weeklyWinners={computed.weeklyWinners}
+                                    />
+                                )}
+                            </>
+                        )}
+                    </>
+                )}
+
+                <a href="https://buymeacoffee.com/samiprehn" target="_blank" rel="noopener noreferrer"
+                    className="block text-center mt-8 text-white/20 text-sm hover:text-white/40 transition-colors"
+                    style={{ textDecoration: 'none' }}>
+                    🍽️ Keep this page running
+                </a>
+            </div>
+        </div>
+    );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
