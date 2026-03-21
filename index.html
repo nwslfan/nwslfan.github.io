@@ -12,74 +12,22 @@
     <style>
         * { box-sizing: border-box; }
         body { background: #090d1a; font-family: system-ui, -apple-system, sans-serif; margin: 0; }
-
-        .page-bg {
-            min-height: 100vh;
-            background: linear-gradient(160deg, #090d1a 0%, #130820 60%, #090d1a 100%);
-        }
-
-        .card {
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.08);
-            border-radius: 1rem;
-        }
-
-        .card-inset {
-            background: rgba(0,0,0,0.2);
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
+        .page-bg { min-height: 100vh; background: linear-gradient(160deg, #090d1a 0%, #130820 60%, #090d1a 100%); }
+        .card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); border-radius: 1rem; }
+        .card-inset { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05); }
         .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
         .rank-2 { background: linear-gradient(135deg, #9ca3af, #6b7280); color: white; }
         .rank-3 { background: linear-gradient(135deg, #cd7c2e, #92400e); color: white; }
         .rank-other { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.35); }
-
         .leader-bar { height: 5px; border-radius: 3px; transition: width 0.6s cubic-bezier(.4,0,.2,1); }
-
         .pick-bar { height: 4px; border-radius: 2px; transition: width 0.5s ease; }
-
-        .bonus-pill {
-            background: linear-gradient(135deg, #7c3aed, #a855f7);
-            font-size: 0.6rem;
-            padding: 2px 6px;
-            border-radius: 999px;
-            color: white;
-            line-height: 1.4;
-        }
-
-        .week-pill {
-            padding: 4px 14px;
-            border-radius: 999px;
-            font-size: 0.75rem;
-            font-weight: 600;
-            transition: all 0.15s;
-            white-space: nowrap;
-        }
+        .bonus-pill { background: linear-gradient(135deg, #7c3aed, #a855f7); font-size: 0.6rem; padding: 2px 6px; border-radius: 999px; color: white; line-height: 1.4; }
+        .week-pill { padding: 4px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
         .week-pill-active { background: #e91e8c; color: white; }
         .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
         .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
-
-        .demo-banner {
-            background: rgba(245,158,11,0.1);
-            border: 1px solid rgba(245,158,11,0.2);
-            border-radius: 0.75rem;
-            color: rgba(245,158,11,0.8);
-            font-size: 0.75rem;
-            padding: 10px 14px;
-            margin-bottom: 1.5rem;
-        }
-
-        .error-banner {
-            background: rgba(239,68,68,0.1);
-            border: 1px solid rgba(239,68,68,0.2);
-            border-radius: 0.75rem;
-            color: rgba(239,68,68,0.8);
-            font-size: 0.75rem;
-            padding: 10px 14px;
-            margin-bottom: 1.5rem;
-        }
-
-        .payout-amount { font-variant-numeric: tabular-nums; }
+        .demo-banner { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: 0.75rem; color: rgba(245,158,11,0.8); font-size: 0.75rem; padding: 10px 14px; margin-bottom: 1.5rem; }
+        .error-banner { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 0.75rem; color: rgba(239,68,68,0.8); font-size: 0.75rem; padding: 10px 14px; margin-bottom: 1rem; }
     </style>
 </head>
 <body>
@@ -88,195 +36,257 @@
 const { useState, useEffect, useMemo } = React;
 
 // ================================================================
-// CONFIGURATION
+// CONFIGURATION — update this each week
 // ================================================================
-// League settings
 const CONFIG = {
     leagueName: "Rachel's NWSL Fantasy League",
     season: "2026",
-    entryFee: 5,              // $ per player
-    bonusThreshold: 0.30,     // bonus point if < 30% of players picked the winner
-    payoutPct: [0.60, 0.30, 0.10],  // 1st, 2nd, 3rd
+    entryFee: 5,
+    bonusThreshold: 0.30,   // <30% of players picked it = underdog bonus
+    payoutPct: [0.60, 0.30, 0.10],
 };
 
-// Google Sheet URLs (CSV export format)
-// To set up:
-//   1. Create a Google Sheet with two tabs: "picks" and "results"
-//   2. Share the sheet: File → Share → Anyone with link can view
-//   3. Get the CSV export URL for each tab:
-//      https://docs.google.com/spreadsheets/d/YOUR_SHEET_ID/export?format=csv&gid=YOUR_TAB_GID
-//   4. Paste the URLs below
-//
-// "picks" tab columns: player, week, home, away, pick
-//   pick = home team name, away team name, or "Draw"
-//
-// "results" tab columns: week, home, away, result
-//   result = home team name, away team name, or "Draw"
-const PICKS_URL = '';
-const RESULTS_URL = '';
-
-
-// ================================================================
-// DEMO DATA (shown when URLs above are not configured)
-// ================================================================
-const DEMO_PICKS = [
-    { player: 'Rachel',  week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
-    { player: 'Rachel',  week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
-    { player: 'Rachel',  week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
-    { player: 'Rachel',  week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
-    { player: 'Mia',     week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Kansas City Current' },
-    { player: 'Mia',     week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
-    { player: 'Mia',     week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
-    { player: 'Mia',     week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
-    { player: 'Jordan',  week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
-    { player: 'Jordan',  week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
-    { player: 'Jordan',  week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Washington Spirit' },
-    { player: 'Jordan',  week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'Seattle Reign' },
-    { player: 'Casey',   week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Portland Thorns' },
-    { player: 'Casey',   week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
-    { player: 'Casey',   week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
-    { player: 'Casey',   week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'San Diego Wave' },
-    { player: 'Alex',    week: 1, home: 'Portland Thorns',    away: 'Kansas City Current', pick: 'Draw' },
-    { player: 'Alex',    week: 1, home: 'Chicago Red Stars',  away: 'NJ/NY Gotham FC',     pick: 'Draw' },
-    { player: 'Alex',    week: 1, home: 'Orlando Pride',      away: 'Washington Spirit',   pick: 'Orlando Pride' },
-    { player: 'Alex',    week: 1, home: 'Seattle Reign',      away: 'San Diego Wave',      pick: 'Seattle Reign' },
-    // Week 2
-    { player: 'Rachel',  week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
-    { player: 'Rachel',  week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
-    { player: 'Rachel',  week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Draw' },
-    { player: 'Mia',     week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'NJ/NY Gotham FC' },
-    { player: 'Mia',     week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Orlando Pride' },
-    { player: 'Mia',     week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Washington Spirit' },
-    { player: 'Jordan',  week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
-    { player: 'Jordan',  week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
-    { player: 'Jordan',  week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Chicago Red Stars' },
-    { player: 'Casey',   week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
-    { player: 'Casey',   week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Kansas City Current' },
-    { player: 'Casey',   week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Draw' },
-    { player: 'Alex',    week: 2, home: 'Portland Thorns',    away: 'NJ/NY Gotham FC',     pick: 'Portland Thorns' },
-    { player: 'Alex',    week: 2, home: 'Kansas City Current',away: 'Orlando Pride',        pick: 'Orlando Pride' },
-    { player: 'Alex',    week: 2, home: 'Washington Spirit',  away: 'Chicago Red Stars',   pick: 'Chicago Red Stars' },
-];
-
-const DEMO_RESULTS = [
-    { week: 1, home: 'Portland Thorns',   away: 'Kansas City Current', result: 'Portland Thorns' },
-    { week: 1, home: 'Chicago Red Stars', away: 'NJ/NY Gotham FC',     result: 'NJ/NY Gotham FC' },
-    { week: 1, home: 'Orlando Pride',     away: 'Washington Spirit',   result: 'Orlando Pride' },
-    { week: 1, home: 'Seattle Reign',     away: 'San Diego Wave',      result: 'San Diego Wave' },
-    { week: 2, home: 'Portland Thorns',   away: 'NJ/NY Gotham FC',     result: 'Portland Thorns' },
-    // Week 2 remaining matches pending
+// Add one entry per week. Steps:
+//   1. Open your Google Form responses sheet
+//   2. File → Share → Anyone with link can view
+//   3. File → Export → CSV  (or get the CSV URL from the sheet URL:
+//      https://docs.google.com/spreadsheets/d/SHEET_ID/export?format=csv&gid=0 )
+//   4. Paste the URL in picksUrl
+//   5. After games are played, fill in results (exact team name or "Draw")
+//   6. Fill in bonusAnswer (actual total goals that week)
+const WEEKS = [
+    {
+        week: 1,
+        picksUrl: '',   // <- paste Google Sheet CSV export URL here
+        results: {
+            // Copy the exact column header from the CSV, set value to winning team or 'Draw'
+            // Example:
+            // 'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit',
+            // 'Boston Legacy vs Gotham FC': 'Draw',
+        },
+        bonusAnswer: null,  // <- set to actual total goals after the week
+    },
+    // { week: 2, picksUrl: '', results: {}, bonusAnswer: null },
 ];
 
 
 // ================================================================
-// CSV PARSING
+// DEMO DATA — shown when no weeks are configured
 // ================================================================
-function parsePicks(csv) {
-    const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
-    return data.map(r => ({
-        player: (r.player || r.Player || '').trim(),
-        week: parseInt(r.week || r.Week),
-        home: (r.home || r.Home || '').trim(),
-        away: (r.away || r.Away || '').trim(),
-        pick: (r.pick || r.Pick || '').trim(),
-    })).filter(r => r.player && !isNaN(r.week) && r.home && r.away && r.pick);
+const DEMO_WEEKS = [
+    {
+        week: 1,
+        results: {
+            'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit',
+            'Boston Legacy vs Gotham FC': 'Gotham FC',
+            'KC Current vs Utah Royals FC': 'KC Current',
+            'Bay FC vs Denver Summit': 'Draw',
+            'North Carolina Courage vs Racing Louisville': 'North Carolina Courage',
+            'San Diego Wave vs Houston Dash': 'San Diego Wave',
+            'Orlando Pride vs Seattle Reign FC': 'Orlando Pride',
+            'Angel City FC vs Chicago Stars': 'Angel City FC',
+        },
+        bonusAnswer: 18,
+        picks: [
+            { player: 'The Counter Attack', timestamp: '2026/03/06 8:00 PM', picks: { 'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit', 'Boston Legacy vs Gotham FC': 'Gotham FC', 'KC Current vs Utah Royals FC': 'KC Current', 'Bay FC vs Denver Summit': 'Bay FC', 'North Carolina Courage vs Racing Louisville': 'North Carolina Courage', 'San Diego Wave vs Houston Dash': 'San Diego Wave', 'Orlando Pride vs Seattle Reign FC': 'Seattle Reign FC', 'Angel City FC vs Chicago Stars': 'Angel City FC' }, bonus: 20 },
+            { player: 'Equal Pay FC', timestamp: '2026/03/06 8:10 PM', picks: { 'Washington Spirit Vs Portland Thorns FC': 'Portland Thorns FC', 'Boston Legacy vs Gotham FC': 'Gotham FC', 'KC Current vs Utah Royals FC': 'KC Current', 'Bay FC vs Denver Summit': 'Draw', 'North Carolina Courage vs Racing Louisville': 'Racing Louisville', 'San Diego Wave vs Houston Dash': 'San Diego Wave', 'Orlando Pride vs Seattle Reign FC': 'Orlando Pride', 'Angel City FC vs Chicago Stars': 'Chicago Stars' }, bonus: 15 },
+            { player: "Syko's Upper 90", timestamp: '2026/03/06 8:20 PM', picks: { 'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit', 'Boston Legacy vs Gotham FC': 'Boston Legacy', 'KC Current vs Utah Royals FC': 'Utah Royals FC', 'Bay FC vs Denver Summit': 'Bay FC', 'North Carolina Courage vs Racing Louisville': 'North Carolina Courage', 'San Diego Wave vs Houston Dash': 'Houston Dash', 'Orlando Pride vs Seattle Reign FC': 'Orlando Pride', 'Angel City FC vs Chicago Stars': 'Angel City FC' }, bonus: 22 },
+            { player: 'VAR You Kidding Me', timestamp: '2026/03/06 8:30 PM', picks: { 'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit', 'Boston Legacy vs Gotham FC': 'Gotham FC', 'KC Current vs Utah Royals FC': 'KC Current', 'Bay FC vs Denver Summit': 'Denver Summit', 'North Carolina Courage vs Racing Louisville': 'North Carolina Courage', 'San Diego Wave vs Houston Dash': 'San Diego Wave', 'Orlando Pride vs Seattle Reign FC': 'Seattle Reign FC', 'Angel City FC vs Chicago Stars': 'Angel City FC' }, bonus: 18 },
+            { player: 'Clean Sheet Society', timestamp: '2026/03/06 8:40 PM', picks: { 'Washington Spirit Vs Portland Thorns FC': 'Portland Thorns FC', 'Boston Legacy vs Gotham FC': 'Draw', 'KC Current vs Utah Royals FC': 'KC Current', 'Bay FC vs Denver Summit': 'Draw', 'North Carolina Courage vs Racing Louisville': 'North Carolina Courage', 'San Diego Wave vs Houston Dash': 'San Diego Wave', 'Orlando Pride vs Seattle Reign FC': 'Orlando Pride', 'Angel City FC vs Chicago Stars': 'Angel City FC' }, bonus: 12 },
+        ],
+    },
+    {
+        week: 2,
+        results: {
+            'Portland Thorns FC vs Gotham FC': 'Portland Thorns FC',
+            'KC Current vs Orlando Pride': 'Draw',
+            'Seattle Reign FC vs Bay FC': 'Seattle Reign FC',
+        },
+        bonusAnswer: null,  // pending
+        picks: [
+            { player: 'The Counter Attack', timestamp: '2026/03/13 8:00 PM', picks: { 'Portland Thorns FC vs Gotham FC': 'Portland Thorns FC', 'KC Current vs Orlando Pride': 'KC Current', 'Seattle Reign FC vs Bay FC': 'Seattle Reign FC' }, bonus: 8 },
+            { player: 'Equal Pay FC', timestamp: '2026/03/13 8:05 PM', picks: { 'Portland Thorns FC vs Gotham FC': 'Gotham FC', 'KC Current vs Orlando Pride': 'Draw', 'Seattle Reign FC vs Bay FC': 'Bay FC' }, bonus: 10 },
+            { player: "Syko's Upper 90", timestamp: '2026/03/13 8:15 PM', picks: { 'Portland Thorns FC vs Gotham FC': 'Portland Thorns FC', 'KC Current vs Orlando Pride': 'KC Current', 'Seattle Reign FC vs Bay FC': 'Seattle Reign FC' }, bonus: 7 },
+            { player: 'VAR You Kidding Me', timestamp: '2026/03/13 8:25 PM', picks: { 'Portland Thorns FC vs Gotham FC': 'Portland Thorns FC', 'KC Current vs Orlando Pride': 'Draw', 'Seattle Reign FC vs Bay FC': 'Seattle Reign FC' }, bonus: 9 },
+            { player: 'Clean Sheet Society', timestamp: '2026/03/13 8:35 PM', picks: { 'Portland Thorns FC vs Gotham FC': 'Gotham FC', 'KC Current vs Orlando Pride': 'KC Current', 'Seattle Reign FC vs Bay FC': 'Bay FC' }, bonus: 6 },
+        ],
+    },
+];
+
+
+// ================================================================
+// CSV PARSING — reads Google Form response format directly
+// ================================================================
+function normalizeHeader(h) {
+    return h.toLowerCase().trim().replace(/\s+/g, ' ');
 }
 
-function parseResults(csv) {
-    const { data } = Papa.parse(csv, { header: true, skipEmptyLines: true });
-    return data.map(r => ({
-        week: parseInt(r.week || r.Week),
-        home: (r.home || r.Home || '').trim(),
-        away: (r.away || r.Away || '').trim(),
-        result: (r.result || r.Result || '').trim(),
-    })).filter(r => !isNaN(r.week) && r.home && r.away && r.result);
+function isMatchColumn(header) {
+    return / vs /i.test(header);
+}
+
+function isBonusColumn(header) {
+    return /^bonus/i.test(header.trim());
+}
+
+function isTeamNameColumn(header) {
+    return /team.?name/i.test(header);
+}
+
+function isFullNameColumn(header) {
+    return /full.?name/i.test(header) && !isTeamNameColumn(header);
+}
+
+function parseFormCSV(csvText) {
+    const { data } = Papa.parse(csvText, { header: true, skipEmptyLines: true });
+    if (!data.length) return [];
+
+    const headers = Object.keys(data[0]);
+    const teamNameCol = headers.find(isTeamNameColumn);
+    const fullNameCol = headers.find(isFullNameColumn);
+    const emailCol = headers.find(h => /email/i.test(h));
+    const timestampCol = headers.find(h => /timestamp/i.test(h));
+    const matchCols = headers.filter(isMatchColumn);
+    const bonusCol = headers.find(isBonusColumn);
+
+    // Deduplicate: if same player submits twice, keep latest (by timestamp)
+    const byPlayer = {};
+    data.forEach(row => {
+        const player = (
+            (teamNameCol && row[teamNameCol]?.trim()) ||
+            (fullNameCol && row[fullNameCol]?.trim()) ||
+            (emailCol && row[emailCol]?.trim()) ||
+            'Unknown'
+        );
+        const ts = timestampCol ? row[timestampCol] : '';
+        const existing = byPlayer[player];
+        if (!existing || ts > existing.timestamp) {
+            const picks = {};
+            matchCols.forEach(col => {
+                if (row[col]?.trim()) picks[col] = row[col].trim();
+            });
+            byPlayer[player] = {
+                player,
+                timestamp: ts,
+                picks,
+                bonus: bonusCol ? parseInt(row[bonusCol]) || null : null,
+            };
+        }
+    });
+
+    return Object.values(byPlayer);
 }
 
 
 // ================================================================
 // SCORING ENGINE
 // ================================================================
-function matchKey(week, home, away) {
-    return `${week}|${home}|${away}`;
+function normalizeResult(str) {
+    return str?.toLowerCase().trim();
 }
 
-function computeStandings(picks, results) {
-    const weeks = [...new Set(picks.map(p => p.week))].sort((a, b) => a - b);
-    const players = [...new Set(picks.map(p => p.player))].sort();
+function computeAll(weekData) {
+    // weekData: array of { week, picks (parsed), results, bonusAnswer }
+    // picks: array of { player, picks: { [matchHeader]: teamName }, bonus: number|null }
 
-    // Index results
-    const resultMap = {};
-    results.forEach(r => {
-        resultMap[matchKey(r.week, r.home, r.away)] = r.result;
-    });
+    const allPlayers = [...new Set(weekData.flatMap(w => w.picks.map(p => p.player)))].sort();
+    const weeks = weekData.map(w => w.week).sort((a, b) => a - b);
 
-    // Pick distribution per match: { [outcome]: count, total: N }
-    const pickDist = {};
-    picks.forEach(p => {
-        const key = matchKey(p.week, p.home, p.away);
-        if (!pickDist[key]) pickDist[key] = { total: 0 };
-        pickDist[key][p.pick] = (pickDist[key][p.pick] || 0) + 1;
-        pickDist[key].total++;
-    });
+    // Per-week scoring
+    const weekScores = {}; // { [week]: { [player]: { correct, underdogBonus, picks, bonusGuess, bonusCorrect } } }
 
-    // Per-player, per-week data
-    const playerWeeks = {};
-    players.forEach(player => {
-        playerWeeks[player] = {};
-        weeks.forEach(w => {
-            playerWeeks[player][w] = { correct: 0, bonus: 0, picks: [] };
+    weekData.forEach(({ week, picks, results, bonusAnswer }) => {
+        weekScores[week] = {};
+
+        // Build pick distribution per match
+        const dist = {};
+        picks.forEach(p => {
+            Object.entries(p.picks).forEach(([match, pick]) => {
+                if (!dist[match]) dist[match] = { total: 0 };
+                dist[match][normalizeResult(pick)] = (dist[match][normalizeResult(pick)] || 0) + 1;
+                dist[match].total++;
+            });
         });
-    });
 
-    picks.forEach(p => {
-        const key = matchKey(p.week, p.home, p.away);
-        const result = resultMap[key];
-        const dist = pickDist[key] || { total: 0 };
-        const correct = result !== undefined && p.pick === result;
-        const pct = dist.total > 0 ? (dist[p.pick] || 0) / dist.total : 1;
-        const isBonus = correct && pct < CONFIG.bonusThreshold;
-
-        if (!playerWeeks[p.player]) playerWeeks[p.player] = {};
-        if (!playerWeeks[p.player][p.week]) playerWeeks[p.player][p.week] = { correct: 0, bonus: 0, picks: [] };
-
-        if (correct) playerWeeks[p.player][p.week].correct++;
-        if (isBonus) playerWeeks[p.player][p.week].bonus++;
-        playerWeeks[p.player][p.week].picks.push({
-            home: p.home, away: p.away, pick: p.pick,
-            result: result !== undefined ? result : null,
-            correct, isBonus, pct,
+        // Normalize results keys
+        const normalizedResults = {};
+        Object.entries(results).forEach(([match, result]) => {
+            normalizedResults[normalizeHeader(match)] = normalizeResult(result);
         });
+
+        // Bonus: find closest guess(es)
+        const bonusGuesses = picks
+            .filter(p => p.bonus !== null && !isNaN(p.bonus))
+            .map(p => ({ player: p.player, guess: p.bonus }));
+        let bonusWinners = new Set();
+        if (bonusAnswer !== null && bonusGuesses.length > 0) {
+            const minDiff = Math.min(...bonusGuesses.map(g => Math.abs(g.guess - bonusAnswer)));
+            bonusWinners = new Set(bonusGuesses.filter(g => Math.abs(g.guess - bonusAnswer) === minDiff).map(g => g.player));
+        }
+
+        picks.forEach(p => {
+            let correct = 0, underdogBonus = 0;
+            const pickDetails = [];
+
+            Object.entries(p.picks).forEach(([match, pick]) => {
+                const normMatch = normalizeHeader(match);
+                const result = normalizedResults[normMatch];
+                const isCorrect = result !== undefined && normalizeResult(pick) === result;
+                const matchDist = dist[match] || { total: 0 };
+                const pct = matchDist.total > 0 ? (matchDist[normalizeResult(pick)] || 0) / matchDist.total : 1;
+                const isUnderdog = isCorrect && pct < CONFIG.bonusThreshold;
+
+                if (isCorrect) correct++;
+                if (isUnderdog) underdogBonus++;
+
+                pickDetails.push({
+                    match, pick, result: result ? result : null,
+                    correct: isCorrect, isUnderdog, pct,
+                    dist: matchDist,
+                });
+            });
+
+            weekScores[week][p.player] = {
+                correct,
+                underdogBonus,
+                total: correct + underdogBonus,
+                picks: pickDetails,
+                bonusGuess: p.bonus,
+                bonusWinner: bonusWinners.has(p.player),
+            };
+        });
+
+        // Store dist and normalized results for display
+        weekScores[week]._meta = { dist, normalizedResults, bonusAnswer, bonusWinners };
     });
 
-    // Weekly winners: player(s) with highest (correct + bonus) that week
+    // Weekly winners
     const weeklyWinners = {};
     weeks.forEach(w => {
-        const scored = players.map(p => ({
-            player: p,
-            pts: (playerWeeks[p]?.[w]?.correct || 0) + (playerWeeks[p]?.[w]?.bonus || 0),
-        }));
-        const max = Math.max(...scored.map(x => x.pts));
-        weeklyWinners[w] = max > 0 ? scored.filter(x => x.pts === max).map(x => x.player) : [];
+        const scores = allPlayers.map(p => ({ player: p, total: weekScores[w]?.[p]?.total || 0 }));
+        const max = Math.max(...scores.map(s => s.total));
+        weeklyWinners[w] = max > 0 ? scores.filter(s => s.total === max).map(s => s.player) : [];
     });
 
     // Overall standings
-    const standings = players.map(player => {
-        const totalCorrect = weeks.reduce((s, w) => s + (playerWeeks[player]?.[w]?.correct || 0), 0);
-        const totalBonus = weeks.reduce((s, w) => s + (playerWeeks[player]?.[w]?.bonus || 0), 0);
+    const standings = allPlayers.map(player => {
+        const totalCorrect = weeks.reduce((s, w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
+        const totalUnderdogBonus = weeks.reduce((s, w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
         const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
-        return { player, totalCorrect, totalBonus, weeklyWins, weeklyData: playerWeeks[player] };
+        const bonusWins = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
+        return { player, totalCorrect, totalUnderdogBonus, weeklyWins, bonusWins };
     });
 
-    // Sort: total pts DESC → correct picks DESC → weekly wins DESC → bonus DESC
     standings.sort((a, b) => {
-        const ta = a.totalCorrect + a.totalBonus, tb = b.totalCorrect + b.totalBonus;
+        const ta = a.totalCorrect + a.totalUnderdogBonus;
+        const tb = b.totalCorrect + b.totalUnderdogBonus;
         if (tb !== ta) return tb - ta;
         if (b.totalCorrect !== a.totalCorrect) return b.totalCorrect - a.totalCorrect;
         if (b.weeklyWins !== a.weeklyWins) return b.weeklyWins - a.weeklyWins;
-        return b.totalBonus - a.totalBonus;
+        return b.bonusWins - a.bonusWins;
     });
 
-    return { standings, weeks, pickDist, resultMap, weeklyWinners };
+    return { standings, weeks, weekScores, weeklyWinners };
 }
 
 
@@ -289,18 +299,17 @@ function PrizePool({ playerCount }) {
     const payouts = CONFIG.payoutPct.map(pct => Math.floor(pool * pct));
     const labels = ['1st', '2nd', '3rd'];
     const colors = ['text-amber-400', 'text-slate-400', 'text-amber-700'];
-
     return (
         <div className="card p-5 mb-5">
             <div className="text-white/40 text-xs uppercase tracking-widest mb-4">Prize Pool</div>
             <div className="flex gap-3">
                 <div className="flex-1 text-center border-r border-white/10 pr-3">
-                    <div className="text-white text-2xl font-bold payout-amount">${pool}</div>
+                    <div className="text-white text-2xl font-bold">${pool}</div>
                     <div className="text-white/30 text-xs mt-1">{playerCount} players</div>
                 </div>
                 {payouts.map((amt, i) => (
                     <div key={i} className="flex-1 text-center">
-                        <div className={`text-xl font-bold payout-amount ${colors[i]}`}>${amt}</div>
+                        <div className={`text-xl font-bold ${colors[i]}`}>${amt}</div>
                         <div className="text-white/30 text-xs mt-1">{labels[i]}</div>
                     </div>
                 ))}
@@ -309,11 +318,9 @@ function PrizePool({ playerCount }) {
     );
 }
 
-function Leaderboard({ standings }) {
+function Leaderboard({ standings, weekScores, weeks }) {
     const [expanded, setExpanded] = useState(null);
-    const maxPts = standings.length > 0
-        ? standings[0].totalCorrect + standings[0].totalBonus
-        : 1;
+    const maxPts = standings.length > 0 ? standings[0].totalCorrect + standings[0].totalUnderdogBonus : 1;
 
     return (
         <div className="card mb-5 overflow-hidden">
@@ -321,7 +328,7 @@ function Leaderboard({ standings }) {
                 <div className="text-white/40 text-xs uppercase tracking-widest">Standings</div>
             </div>
             {standings.map((s, i) => {
-                const total = s.totalCorrect + s.totalBonus;
+                const total = s.totalCorrect + s.totalUnderdogBonus;
                 const barPct = maxPts > 0 ? (total / maxPts) * 100 : 0;
                 const isOpen = expanded === s.player;
                 const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
@@ -333,34 +340,26 @@ function Leaderboard({ standings }) {
                             className="w-full px-5 py-3.5 flex items-center gap-3 border-t border-white/5 text-left"
                             style={{ background: isOpen ? 'rgba(255,255,255,0.03)' : 'transparent' }}
                         >
-                            {/* Rank */}
                             <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankClass}`}>
                                 {i + 1}
                             </div>
-
-                            {/* Name + bar */}
                             <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-1.5">
+                                <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                                     <span className="text-white font-medium text-sm truncate">{s.player}</span>
-                                    {s.weeklyWins > 0 && (
-                                        <span className="text-amber-400 text-xs flex-shrink-0">🏆 ×{s.weeklyWins}</span>
-                                    )}
+                                    {s.weeklyWins > 0 && <span className="text-amber-400 text-xs flex-shrink-0">🏆 ×{s.weeklyWins}</span>}
                                 </div>
                                 <div className="bg-white/10 rounded-full overflow-hidden" style={{ height: 5 }}>
                                     <div className="leader-bar bg-pink-500" style={{ width: `${barPct}%` }} />
                                 </div>
                             </div>
-
-                            {/* Score */}
                             <div className="text-right flex-shrink-0">
                                 <div className="text-white font-bold text-xl leading-none">{total}</div>
                                 <div className="text-white/30 text-xs mt-0.5">
-                                    {s.totalCorrect} + <span className="text-purple-400">{s.totalBonus}★</span>
+                                    {s.totalCorrect} + <span className="text-purple-400">{s.totalUnderdogBonus}★</span>
                                 </div>
                             </div>
                         </button>
-
-                        {isOpen && <PickHistory weeklyData={s.weeklyData} />}
+                        {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={weeks} />}
                     </div>
                 );
             })}
@@ -368,44 +367,65 @@ function Leaderboard({ standings }) {
     );
 }
 
-function PickHistory({ weeklyData }) {
-    const weeks = Object.keys(weeklyData).map(Number).sort((a, b) => a - b);
+function PickHistory({ player, weekScores, weeks }) {
     return (
         <div className="card-inset px-5 py-4">
             <div className="text-white/30 text-xs uppercase tracking-wider mb-3">Pick History</div>
             <div className="space-y-4">
                 {weeks.map(w => {
-                    const wd = weeklyData[w];
-                    if (!wd || wd.picks.length === 0) return null;
-                    const wTotal = wd.correct + wd.bonus;
+                    const wd = weekScores[w]?.[player];
+                    if (!wd) return (
+                        <div key={w} className="text-white/20 text-xs">Week {w} — no submission</div>
+                    );
                     return (
                         <div key={w}>
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-white/50 text-xs font-medium">Week {w}</span>
                                 <span className="text-white text-xs">
-                                    {wTotal} pt{wTotal !== 1 ? 's' : ''}
-                                    {wd.bonus > 0 && <span className="text-purple-400"> (+{wd.bonus} bonus)</span>}
+                                    {wd.total} pt{wd.total !== 1 ? 's' : ''}
+                                    {wd.underdogBonus > 0 && <span className="text-purple-400"> (+{wd.underdogBonus} bonus)</span>}
                                 </span>
                             </div>
                             <div className="space-y-1.5">
-                                {wd.picks.map((pick, i) => (
-                                    <div key={i} className="flex items-center gap-2 text-xs">
-                                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-[9px]
-                                            ${pick.result === null ? 'bg-white/10 text-white/30'
-                                              : pick.correct ? 'bg-green-500/25 text-green-400'
-                                              : 'bg-red-500/20 text-red-400'}`}>
-                                            {pick.result === null ? '?' : pick.correct ? '✓' : '✗'}
+                                {wd.picks.map((pick, i) => {
+                                    // Extract team names from match header
+                                    const parts = pick.match.split(/ vs /i);
+                                    const matchLabel = parts.length === 2
+                                        ? `${parts[0].trim()} vs ${parts[1].trim()}`
+                                        : pick.match;
+                                    return (
+                                        <div key={i} className="flex items-center gap-2 text-xs">
+                                            <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-[9px]
+                                                ${pick.result === null ? 'bg-white/10 text-white/30'
+                                                  : pick.correct ? 'bg-green-500/25 text-green-400'
+                                                  : 'bg-red-500/20 text-red-400'}`}>
+                                                {pick.result === null ? '?' : pick.correct ? '✓' : '✗'}
+                                            </span>
+                                            <span className="text-white/40 truncate flex-1">{matchLabel}</span>
+                                            <span className={`flex-shrink-0 font-medium
+                                                ${pick.correct ? 'text-green-400'
+                                                  : pick.result === null ? 'text-white/30'
+                                                  : 'text-red-400'}`}>
+                                                {pick.pick}
+                                            </span>
+                                            {pick.isUnderdog && <span className="bonus-pill flex-shrink-0">★</span>}
+                                        </div>
+                                    );
+                                })}
+                                {wd.bonusGuess !== null && (
+                                    <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t border-white/5">
+                                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px]
+                                            ${weekScores[w]?._meta?.bonusAnswer === null ? 'bg-white/10 text-white/30'
+                                              : wd.bonusWinner ? 'bg-amber-500/25 text-amber-400'
+                                              : 'bg-white/10 text-white/30'}`}>
+                                            {weekScores[w]?._meta?.bonusAnswer === null ? '?' : wd.bonusWinner ? '★' : '·'}
                                         </span>
-                                        <span className="text-white/40 truncate flex-1">{pick.home} vs {pick.away}</span>
-                                        <span className={`flex-shrink-0 font-medium
-                                            ${pick.correct ? 'text-green-400'
-                                              : pick.result === null ? 'text-white/30'
-                                              : 'text-red-400'}`}>
-                                            {pick.pick}
+                                        <span className="text-white/30 flex-1">Total goals guess</span>
+                                        <span className={`flex-shrink-0 font-medium ${wd.bonusWinner ? 'text-amber-400' : 'text-white/40'}`}>
+                                            {wd.bonusGuess}
                                         </span>
-                                        {pick.isBonus && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
                                     </div>
-                                ))}
+                                )}
                             </div>
                         </div>
                     );
@@ -415,72 +435,85 @@ function PickHistory({ weeklyData }) {
     );
 }
 
-function WeekSection({ week, picks, resultMap, pickDist, weeklyWinners }) {
-    const weekPicks = picks.filter(p => p.week === week);
+function WeekSection({ weekNum, weekDef, weekScore }) {
+    const { results, bonusAnswer } = weekDef;
+    const meta = weekScore?._meta || {};
+    const { dist = {}, normalizedResults = {}, bonusWinners = new Set() } = meta;
 
-    // Deduplicate matches
-    const seen = new Set();
-    const matches = [];
-    weekPicks.forEach(p => {
-        const key = matchKey(week, p.home, p.away);
-        if (!seen.has(key)) {
-            seen.add(key);
-            matches.push({ home: p.home, away: p.away, key });
-        }
+    // Get all unique matches from picks
+    const allMatches = new Set();
+    Object.values(weekScore || {}).forEach(ps => {
+        if (ps._meta) return;
+        ps.picks?.forEach(p => allMatches.add(p.match));
     });
+    const matchList = [...allMatches];
 
-    if (matches.length === 0) return (
-        <div className="card p-8 text-center text-white/30 text-sm mb-5">
-            No picks submitted for Week {week} yet.
-        </div>
-    );
+    // Weekly winner(s)
+    const winnerPlayers = Object.entries(weekScore || {})
+        .filter(([k]) => k !== '_meta')
+        .map(([player, s]) => ({ player, total: s.total }));
+    const maxWk = winnerPlayers.length > 0 ? Math.max(...winnerPlayers.map(s => s.total)) : 0;
+    const weekWinners = maxWk > 0 ? winnerPlayers.filter(s => s.total === maxWk).map(s => s.player) : [];
 
-    const winners = weeklyWinners[week] || [];
-    const allResultsIn = matches.every(m => resultMap[m.key] !== undefined);
-    const someResultsIn = matches.some(m => resultMap[m.key] !== undefined);
+    // Bonus guesses
+    const bonusGuesses = Object.entries(weekScore || {})
+        .filter(([k]) => k !== '_meta' && weekScore[k].bonusGuess !== null)
+        .map(([player, s]) => ({ player, guess: s.bonusGuess, winner: s.bonusWinner }))
+        .sort((a, b) => {
+            if (bonusAnswer !== null) return Math.abs(a.guess - bonusAnswer) - Math.abs(b.guess - bonusAnswer);
+            return a.guess - b.guess;
+        });
+
+    const hasAnyResults = Object.keys(results).length > 0;
+    const allResultsIn = matchList.length > 0 && matchList.every(m => normalizedResults[normalizeHeader(m)] !== undefined);
 
     return (
         <div className="card mb-5 overflow-hidden">
             <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                 <div>
-                    <h2 className="text-white font-semibold">Week {week}</h2>
+                    <h2 className="text-white font-semibold">Week {weekNum}</h2>
                     <div className="text-white/30 text-xs mt-0.5">
-                        {allResultsIn ? 'All results in' : someResultsIn ? 'Results partial' : 'Awaiting results'}
+                        {!hasAnyResults ? 'Awaiting results' : allResultsIn ? 'All results in' : 'Results partial'}
                     </div>
                 </div>
-                {winners.length > 0 && (
+                {weekWinners.length > 0 && (
                     <div className="text-amber-400 text-xs text-right">
-                        🏆 {winners.length === 1 ? winners[0] : `${winners.length}-way tie`}
+                        🏆 {weekWinners.length === 1 ? weekWinners[0] : `${weekWinners.length}-way tie`}
                     </div>
                 )}
             </div>
 
             <div className="divide-y divide-white/5">
-                {matches.map(({ home, away, key }) => {
-                    const result = resultMap[key];
-                    const dist = pickDist[key] || { total: 0 };
-                    const total = dist.total;
-                    const outcomes = [home, 'Draw', away];
+                {matchList.map((match, i) => {
+                    const normKey = normalizeHeader(match);
+                    const result = normalizedResults[normKey];
+                    const matchDist = dist[match] || { total: 0 };
+                    const total = matchDist.total;
+
+                    // Extract home/away from header
+                    const parts = match.split(/ vs /i);
+                    const home = parts[0]?.trim() || '';
+                    const away = parts[1]?.trim() || '';
+                    const outcomes = home && away ? [home, 'Draw', away] : [];
 
                     return (
-                        <div key={key} className="px-5 py-4">
+                        <div key={i} className="px-5 py-4">
                             <div className="mb-3">
                                 <div className="text-white text-sm font-medium">
                                     {home} <span className="text-white/25">vs</span> {away}
                                 </div>
                                 {result
-                                    ? <div className="text-green-400 text-xs mt-0.5">Result: {result}</div>
+                                    ? <div className="text-green-400 text-xs mt-0.5 capitalize">Result: {result}</div>
                                     : <div className="text-white/25 text-xs mt-0.5">Pending</div>
                                 }
                             </div>
-
                             <div className="space-y-2">
                                 {outcomes.map(outcome => {
-                                    const count = dist[outcome] || 0;
+                                    const normOutcome = normalizeResult(outcome);
+                                    const count = matchDist[normOutcome] || 0;
                                     const pct = total > 0 ? count / total : 0;
-                                    const isResult = outcome === result;
+                                    const isResult = normOutcome === result;
                                     const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
-
                                     return (
                                         <div key={outcome} className="flex items-center gap-2.5">
                                             <div className={`text-xs w-32 truncate flex-shrink-0
@@ -494,9 +527,7 @@ function WeekSection({ week, picks, resultMap, pickDist, weeklyWinners }) {
                                             <div className="text-white/35 text-xs w-9 text-right flex-shrink-0">
                                                 {Math.round(pct * 100)}%
                                             </div>
-                                            {isUnderdog && (
-                                                <span className="bonus-pill flex-shrink-0">★ bonus</span>
-                                            )}
+                                            {isUnderdog && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
                                         </div>
                                     );
                                 })}
@@ -504,6 +535,33 @@ function WeekSection({ week, picks, resultMap, pickDist, weeklyWinners }) {
                         </div>
                     );
                 })}
+
+                {/* Bonus question */}
+                {bonusGuesses.length > 0 && (
+                    <div className="px-5 py-4">
+                        <div className="text-white/40 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <span>Bonus: Total Goals</span>
+                            {bonusAnswer !== null && <span className="text-white font-semibold normal-case tracking-normal">Actual: {bonusAnswer}</span>}
+                        </div>
+                        <div className="space-y-1.5">
+                            {bonusGuesses.map(({ player, guess, winner }) => (
+                                <div key={player} className="flex items-center gap-3 text-xs">
+                                    <span className={`flex-1 truncate ${winner ? 'text-amber-400 font-medium' : 'text-white/50'}`}>
+                                        {player}
+                                    </span>
+                                    <span className={`font-medium ${winner ? 'text-amber-400' : 'text-white/40'}`}>
+                                        {guess}
+                                    </span>
+                                    {bonusAnswer !== null && (
+                                        <span className={`text-white/25 w-10 text-right ${winner ? 'text-amber-400/60' : ''}`}>
+                                            {winner ? '★ closest' : `off ${Math.abs(guess - bonusAnswer)}`}
+                                        </span>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -514,47 +572,52 @@ function WeekSection({ week, picks, resultMap, pickDist, weeklyWinners }) {
 // MAIN APP
 // ================================================================
 function App() {
-    const [picks, setPicks] = useState(null);
-    const [results, setResults] = useState(null);
+    const [loadedWeeks, setLoadedWeeks] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState('');
+    const [errors, setErrors] = useState([]);
     const [usingDemo, setUsingDemo] = useState(false);
     const [activeWeek, setActiveWeek] = useState(null);
 
     useEffect(() => {
         async function load() {
-            if (!PICKS_URL || !RESULTS_URL) {
-                setPicks(DEMO_PICKS);
-                setResults(DEMO_RESULTS);
+            const configured = WEEKS.filter(w => w.picksUrl);
+
+            if (configured.length === 0) {
+                setLoadedWeeks(DEMO_WEEKS);
                 setUsingDemo(true);
                 setLoading(false);
                 return;
             }
-            try {
-                const [pr, rr] = await Promise.all([fetch(PICKS_URL), fetch(RESULTS_URL)]);
-                if (!pr.ok || !rr.ok) throw new Error('Fetch failed');
-                const [pt, rt] = await Promise.all([pr.text(), rr.text()]);
-                setPicks(parsePicks(pt));
-                setResults(parseResults(rt));
-            } catch (e) {
-                setError('Could not load data. Check PICKS_URL and RESULTS_URL in the config, and make sure the sheet is public.');
-                setPicks(DEMO_PICKS);
-                setResults(DEMO_RESULTS);
-                setUsingDemo(true);
-            }
+
+            const errs = [];
+            const loaded = await Promise.all(WEEKS.map(async (wk) => {
+                if (!wk.picksUrl) return { ...wk, picks: [] };
+                try {
+                    const resp = await fetch(wk.picksUrl);
+                    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+                    const text = await resp.text();
+                    return { ...wk, picks: parseFormCSV(text) };
+                } catch (e) {
+                    errs.push(`Week ${wk.week}: ${e.message}`);
+                    return { ...wk, picks: [] };
+                }
+            }));
+
+            setErrors(errs);
+            setLoadedWeeks(loaded);
             setLoading(false);
         }
         load();
     }, []);
 
     const computed = useMemo(() => {
-        if (!picks || !results) return null;
-        return computeStandings(picks, results);
-    }, [picks, results]);
+        if (!loadedWeeks) return null;
+        return computeAll(loadedWeeks);
+    }, [loadedWeeks]);
 
-    // Default to latest week
     const weeks = computed?.weeks || [];
     const displayWeek = activeWeek ?? (weeks.length > 0 ? weeks[weeks.length - 1] : null);
+    const displayWeekDef = loadedWeeks?.find(w => w.week === displayWeek);
 
     if (loading) return (
         <div className="page-bg min-h-screen flex items-center justify-center">
@@ -565,52 +628,41 @@ function App() {
     return (
         <div className="page-bg">
             <div className="max-w-lg mx-auto px-4 py-8 pb-16">
-
-                {/* Header */}
                 <div className="text-center mb-8">
-                    <div className="text-pink-500 text-xs uppercase tracking-widest font-semibold mb-1">
-                        NWSL {CONFIG.season}
-                    </div>
+                    <div className="text-pink-500 text-xs uppercase tracking-widest font-semibold mb-1">NWSL {CONFIG.season}</div>
                     <h1 className="text-white text-2xl font-bold">{CONFIG.leagueName}</h1>
                 </div>
 
-                {/* Banners */}
-                {usingDemo && !error && (
+                {usingDemo && (
                     <div className="demo-banner">
-                        Showing demo data. Set <code className="font-mono">PICKS_URL</code> and <code className="font-mono">RESULTS_URL</code> at the top of this file to connect your Google Sheet.
+                        Showing demo data. Add your Google Sheet CSV URLs to <code className="font-mono">WEEKS</code> in the config at the top of this file.
                     </div>
                 )}
-                {error && (
-                    <div className="error-banner">{error}</div>
-                )}
+                {errors.map((e, i) => (
+                    <div key={i} className="error-banner">{e}</div>
+                ))}
 
                 {computed && (
                     <>
                         <PrizePool playerCount={computed.standings.length} />
-                        <Leaderboard standings={computed.standings} />
+                        <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} />
 
-                        {/* Week selector */}
                         {weeks.length > 0 && (
                             <>
                                 <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
                                     {weeks.map(w => (
-                                        <button
-                                            key={w}
+                                        <button key={w}
                                             onClick={() => setActiveWeek(w)}
-                                            className={`week-pill ${displayWeek === w ? 'week-pill-active' : 'week-pill-inactive'}`}
-                                        >
+                                            className={`week-pill ${displayWeek === w ? 'week-pill-active' : 'week-pill-inactive'}`}>
                                             Week {w}
                                         </button>
                                     ))}
                                 </div>
-
-                                {displayWeek !== null && (
+                                {displayWeek !== null && displayWeekDef && (
                                     <WeekSection
-                                        week={displayWeek}
-                                        picks={picks}
-                                        resultMap={computed.resultMap}
-                                        pickDist={computed.pickDist}
-                                        weeklyWinners={computed.weeklyWinners}
+                                        weekNum={displayWeek}
+                                        weekDef={displayWeekDef}
+                                        weekScore={computed.weekScores[displayWeek]}
                                     />
                                 )}
                             </>
