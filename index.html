@@ -816,7 +816,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             <div className="mb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="text-white text-sm font-medium">
-                                        {formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}
+                                        {schedMatch?.score ? formatTeamName(schedMatch.score) : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center mt-0.5">
@@ -824,10 +824,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         ? <div className="text-white/70 text-xs">{schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {schedMatch.time}</div>
                                         : <div />
                                     }
-                                    {result
-                                        ? <div className="text-pink-400 text-xs">Result: {schedMatch?.score ? formatTeamName(schedMatch.score) : formatTeamName(result.replace(/\b\w/g, c => c.toUpperCase()))}</div>
-                                        : <div className="text-white/70 text-xs">Pending</div>
-                                    }
+                                    {!result && <div className="text-white/70 text-xs">Pending</div>}
                                 </div>
                             </div>
                             <div className="space-y-2">
