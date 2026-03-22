@@ -506,7 +506,7 @@ function computeAll(weekData) {
             });
         });
         const normResults = {};
-        Object.entries(results).forEach(([k, v]) => { normResults[k.toLowerCase().trim()] = normalizeResult(v); });
+        Object.entries(results).forEach(([k, v]) => { normResults[k.toLowerCase().trim()] = normTeam(v); });
 
         const bonusGuesses = picks.filter(p => p.bonus !== null && !isNaN(p.bonus)).map(p => ({ player: p.player, guess: p.bonus }));
         let bonusWinners = new Set();
@@ -520,7 +520,7 @@ function computeAll(weekData) {
             const pickDetails = [];
             Object.entries(p.picks).forEach(([match, pick]) => {
                 const result = normResults[match.toLowerCase().trim()];
-                const isCorrect = result !== undefined && normalizeResult(pick) === result;
+                const isCorrect = result !== undefined && normTeam(pick) === result;
                 const matchDist = dist[match] || { total: 0 };
                 const pct = matchDist.total > 0 ? (matchDist[normalizeResult(pick)] || 0) / matchDist.total : 1;
                 const isUnderdog = isCorrect && pct < CONFIG.bonusThreshold;
