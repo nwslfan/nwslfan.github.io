@@ -435,6 +435,7 @@ function formatTeamName(s) {
         .replace(/\bangel city\s*fc\b/gi, 'Angel City')
         .replace(/\bseattle reign\s*fc\b/gi, 'Seattle Reign')
         .replace(/\butah royals\s*fc\b/gi, 'Utah Royals')
+        .replace(/\bbay\b(?!\s*fc)/gi, 'Bay FC')
         .replace(/\bfc\b/gi, 'FC');
 }
 
