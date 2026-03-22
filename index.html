@@ -422,6 +422,11 @@ function isFuture(dateStr) {
     return d >= new Date();
 }
 
+function formatScore(s) {
+    const parts = s.split(/(\d+\s*[–-]\s*\d+)/);
+    return parts.map((p, i) => /\d/.test(p) ? <span key={i} className="text-pink-400">{p}</span> : formatTeamName(p));
+}
+
 function formatTeamName(s) {
     return s
         .replace(/\bnorth carolina\b/gi, 'NC')
@@ -817,7 +822,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             <div className="mb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="text-white text-sm font-medium">
-                                        {schedMatch?.score ? formatTeamName(schedMatch.score) : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
+                                        {schedMatch?.score ? formatScore(schedMatch.score) : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
                                     </div>
                                 </div>
                                 <div className="flex justify-between items-center mt-0.5">
