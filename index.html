@@ -720,7 +720,7 @@ function ScheduleSection({ scheduleWeeks }) {
                     <div className="text-pink-500 text-xs font-bold uppercase tracking-wider">Week {activeWeek.weekNum}</div>
                 </div>
                 {/* Week selector */}
-                <div className="flex gap-1.5 overflow-x-auto pb-1">
+                <div className="pills-scroll flex gap-1.5 overflow-x-auto">
                     {scheduleWeeks.map(w => (
                         <button key={w.weekNum}
                             onClick={() => setViewWeekNum(w.weekNum)}
