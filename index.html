@@ -737,7 +737,8 @@ function ScheduleSection({ scheduleWeeks }) {
                                 {today && <span className="font-normal normal-case tracking-normal text-pink-400/70 ml-1">Today</span>}
                             </div>
                             {matches.map((m, i) => (
-                                <div key={i} className={`px-5 py-2.5 flex items-center gap-3 ${!future && !today ? 'opacity-40' : ''}`}>
+                                <a key={i} href={`https://www.google.com/search?q=${encodeURIComponent(`${m.home} vs ${m.away} ${m.date}`)}`} target="_blank" rel="noopener noreferrer"
+                                    className={`px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-white/5 ${!future && !today ? 'opacity-40' : ''}`}>
                                     <div className="text-white/75 text-xs w-14 flex-shrink-0">{m.time}</div>
                                     <div className="flex-1 min-w-0">
                                         <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
@@ -747,7 +748,7 @@ function ScheduleSection({ scheduleWeeks }) {
                                     {m.broadcast && (
                                         <div className="text-white/75 text-xs flex-shrink-0 text-right">{formatBroadcast(m.broadcast)}</div>
                                     )}
-                                </div>
+                                </a>
                             ))}
                         </div>
                     );
