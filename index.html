@@ -422,7 +422,13 @@ function isFuture(dateStr) {
 }
 
 function formatTeamName(s) {
-    return s.replace(/\bnorth carolina\b/gi, 'NC').replace(/\bfc\b/gi, 'FC');
+    return s
+        .replace(/\bnorth carolina\b/gi, 'NC')
+        .replace(/\bkansas city\b/gi, 'KC')
+        .replace(/\bangel city\s*fc\b/gi, 'Angel City')
+        .replace(/\bseattle reign\s*fc\b/gi, 'Seattle Reign')
+        .replace(/\butah royals\s*fc\b/gi, 'Utah Royals')
+        .replace(/\bfc\b/gi, 'FC');
 }
 
 function formatBroadcast(str) {
@@ -818,7 +824,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         : <div />
                                     }
                                     {result
-                                        ? <div className="text-pink-400 text-xs">Result: {schedMatch?.score || formatTeamName(result.replace(/\b\w/g, c => c.toUpperCase()))}</div>
+                                        ? <div className="text-pink-400 text-xs">Result: {schedMatch?.score ? formatTeamName(schedMatch.score) : formatTeamName(result.replace(/\b\w/g, c => c.toUpperCase()))}</div>
                                         : <div className="text-white/70 text-xs">Pending</div>
                                     }
                                 </div>
