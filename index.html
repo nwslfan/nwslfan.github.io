@@ -311,6 +311,9 @@ const WEEKS = [
         bonusAnswer: null,
     },
     // { week: 2, picksUrl: '', formUrl: '', results: {}, bonusAnswer: null },
+    { week: 3, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
+    { week: 4, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', results: {}, bonusAnswer: null },
+    { week: 5, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxB8yqBNmso4_xqm37KPyoT1ehdufLDQx1cGTRITFHzDTm-Q/viewform', results: {}, bonusAnswer: null },
 ];
 
 
@@ -948,8 +951,7 @@ function App() {
             }
 
             const errs = [];
-            const loaded = await Promise.all(WEEKS.map(async wk => {
-                if (!wk.picksUrl) return { ...wk, picks: [] };
+            const loaded = await Promise.all(configured.map(async wk => {
                 try {
                     const r = await fetch(wk.picksUrl);
                     if (!r.ok) throw new Error(`HTTP ${r.status}`);
@@ -1007,12 +1009,16 @@ function App() {
 
                 {computed && weeks.length > 0 && (() => {
                     const picksWeekNums = new Set(weeks);
+                    const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.picksUrl && !picksWeekNums.has(w.week));
+                    const formOnlyNums = new Set(formOnlyWeeks.map(w => w.week));
                     const futureSchedWeeks = scheduleWeeks.filter(sw =>
                         !picksWeekNums.has(sw.weekNum) &&
+                        !formOnlyNums.has(sw.weekNum) &&
                         sw.matches.every(m => isFuture(m.date))
                     );
                     const allWeekPills = [
                         ...weeks.map(w => ({ weekNum: w, hasPicks: true })),
+                        ...formOnlyWeeks.map(w => ({ weekNum: w.week, hasPicks: false })),
                         ...futureSchedWeeks.map(sw => ({ weekNum: sw.weekNum, hasPicks: false })),
                     ].sort((a, b) => a.weekNum - b.weekNum);
                     return (
