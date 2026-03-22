@@ -835,7 +835,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                                 <div className={`pick-bar ${isResult?'bg-pink-500':'bg-white'}`} style={{width:`${pct*100}%`}} />
                                             </div>
                                             <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
-                                            {isUnderdog && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
+                                            {isUnderdog && <span className="bonus-pill flex-shrink-0" title="bonus">★</span>}
                                         </div>
                                     );
                                 })}
