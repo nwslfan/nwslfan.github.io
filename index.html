@@ -394,6 +394,28 @@ function parseScheduleDate(str) {
     return new Date(y, m - 1, d);
 }
 
+function pacificToDate(dateStr, timeStr) {
+    if (!dateStr || !timeStr) return null;
+    const [m, d, y] = dateStr.split('/').map(Number);
+    const match = timeStr.trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+    if (!match) return null;
+    let h = +match[1], min = +match[2];
+    if (match[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+    if (match[3].toUpperCase() === 'AM' && h === 12) h = 0;
+    const guess = new Date(Date.UTC(y, m - 1, d, h, min));
+    const parts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'America/Los_Angeles', hour: '2-digit', minute: '2-digit', hour12: false
+    }).formatToParts(guess).reduce((a, {type, value}) => ({...a, [type]: value}), {});
+    const diff = (h * 60 + min) - (+parts.hour * 60 + +parts.minute);
+    return new Date(guess.getTime() + diff * 60000);
+}
+
+function formatLocalTime(dateStr, timeStr) {
+    const date = pacificToDate(dateStr, timeStr);
+    if (!date) return timeStr;
+    return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' });
+}
+
 function dateRange(week) {
     if (!week?.matches?.length) return '';
     const dates = week.matches.map(m => parseScheduleDate(m.date));
@@ -747,7 +769,7 @@ function ScheduleSection({ scheduleWeeks }) {
                             {matches.map((m, i) => (
                                 <a key={i} href={`https://www.google.com/search?q=${encodeURIComponent(`${m.home} vs ${m.away} ${m.date}`)}`} target="_blank" rel="noopener noreferrer"
                                     className={`px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-white/5 ${!future && !today ? 'opacity-40' : ''}`}>
-                                    <div className="text-white/75 text-xs w-14 flex-shrink-0">{m.time}</div>
+                                    <div className="text-white/75 text-xs w-24 flex-shrink-0">{formatLocalTime(m.date, m.time)}</div>
                                     <div className="flex-1 min-w-0">
                                         <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
                                             {formatTeamName(m.home)} <span className="text-white/70">vs</span> {formatTeamName(m.away)}
@@ -829,7 +851,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                 </div>
                                 <div className="flex justify-between items-center mt-0.5">
                                     {schedMatch
-                                        ? <div className="text-white/70 text-xs">{schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {schedMatch.time}</div>
+                                        ? <div className="text-white/70 text-xs">{schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {formatLocalTime(schedMatch.date, schedMatch.time)}</div>
                                         : <div />
                                     }
                                     {!result && <div className="text-white/70 text-xs">Pending</div>}
