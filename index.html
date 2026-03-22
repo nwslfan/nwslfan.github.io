@@ -830,7 +830,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         <div key={outcome} className="flex items-center gap-2.5">
                                             <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-green-400 font-semibold':'text-white/85'}`}>{outcome}</div>
                                             <div className="flex-1 bg-white/10 rounded-full overflow-hidden" style={{height:4}}>
-                                                <div className={`pick-bar ${isResult?'bg-green-500':'bg-white/20'}`} style={{width:`${pct*100}%`}} />
+                                                <div className={`pick-bar ${isResult?'bg-green-500':'bg-pink-500'}`} style={{width:`${pct*100}%`}} />
                                             </div>
                                             <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
                                             {isUnderdog && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
