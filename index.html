@@ -568,16 +568,16 @@ function PrizePool({ playerCount }) {
     const labels = ['1st','2nd','3rd'], colors = ['text-amber-400','text-slate-400','text-amber-700'];
     return (
         <div className="card p-5 mb-5">
-            <div className="text-white/40 text-xs uppercase tracking-widest mb-4">Prize Pool</div>
+            <div className="text-white/85 text-xs uppercase tracking-widest mb-4">Prize Pool</div>
             <div className="flex gap-3">
                 <div className="flex-1 text-center border-r border-white/10 pr-3">
                     <div className="text-white text-2xl font-bold">${pool}</div>
-                    <div className="text-white/30 text-xs mt-1">{playerCount} players</div>
+                    <div className="text-white/75 text-xs mt-1">{playerCount} players</div>
                 </div>
                 {payouts.map((amt, i) => (
                     <div key={i} className="flex-1 text-center">
                         <div className={`text-xl font-bold ${colors[i]}`}>${amt}</div>
-                        <div className="text-white/30 text-xs mt-1">{labels[i]}</div>
+                        <div className="text-white/75 text-xs mt-1">{labels[i]}</div>
                     </div>
                 ))}
             </div>
@@ -591,7 +591,7 @@ function Leaderboard({ standings, weekScores, weeks }) {
     return (
         <div className="card mb-5 overflow-hidden">
             <div className="px-5 pt-5 pb-2">
-                <div className="text-white/40 text-xs uppercase tracking-widest">Standings</div>
+                <div className="text-white/85 text-xs uppercase tracking-widest">Standings</div>
             </div>
             {standings.map((s, i) => {
                 const total = s.totalCorrect + s.totalUnderdogBonus;
@@ -615,7 +615,7 @@ function Leaderboard({ standings, weekScores, weeks }) {
                             </div>
                             <div className="text-right flex-shrink-0">
                                 <div className="text-white font-bold text-xl leading-none">{total}</div>
-                                <div className="text-white/30 text-xs mt-0.5">{s.totalCorrect} + <span className="text-purple-400">{s.totalUnderdogBonus}★</span></div>
+                                <div className="text-white/75 text-xs mt-0.5">{s.totalCorrect} + <span className="text-purple-400">{s.totalUnderdogBonus}★</span></div>
                             </div>
                         </button>
                         {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={weeks} />}
@@ -629,7 +629,7 @@ function Leaderboard({ standings, weekScores, weeks }) {
 function PickHistory({ player, weekScores, weeks }) {
     return (
         <div className="card-inset px-5 py-4">
-            <div className="text-white/30 text-xs uppercase tracking-wider mb-3">Pick History</div>
+            <div className="text-white/75 text-xs uppercase tracking-wider mb-3">Pick History</div>
             <div className="space-y-4">
                 {weeks.map(w => {
                     const wd = weekScores[w]?.[player];
@@ -637,7 +637,7 @@ function PickHistory({ player, weekScores, weeks }) {
                     return (
                         <div key={w}>
                             <div className="flex justify-between items-center mb-2">
-                                <span className="text-white/50 text-xs font-medium">Week {w}</span>
+                                <span className="text-white/90 text-xs font-medium">Week {w}</span>
                                 <span className="text-white text-xs">{wd.total} pt{wd.total!==1?'s':''}
                                     {wd.underdogBonus > 0 && <span className="text-purple-400"> (+{wd.underdogBonus} bonus)</span>}
                                 </span>
@@ -649,22 +649,22 @@ function PickHistory({ player, weekScores, weeks }) {
                                     return (
                                         <div key={i} className="flex items-center gap-2 text-xs">
                                             <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center font-bold text-[9px]
-                                                ${pick.result===null?'bg-white/10 text-white/30':pick.correct?'bg-green-500/25 text-green-400':'bg-red-500/20 text-red-400'}`}>
+                                                ${pick.result===null?'bg-white/10 text-white/75':pick.correct?'bg-green-500/25 text-green-400':'bg-red-500/20 text-red-400'}`}>
                                                 {pick.result===null?'?':pick.correct?'✓':'✗'}
                                             </span>
-                                            <span className="text-white/40 truncate flex-1">{label}</span>
-                                            <span className={`flex-shrink-0 font-medium ${pick.correct?'text-green-400':pick.result===null?'text-white/30':'text-red-400'}`}>{pick.pick}</span>
+                                            <span className="text-white/85 truncate flex-1">{label}</span>
+                                            <span className={`flex-shrink-0 font-medium ${pick.correct?'text-green-400':pick.result===null?'text-white/75':'text-red-400'}`}>{pick.pick}</span>
                                             {pick.isUnderdog && <span className="bonus-pill flex-shrink-0">★</span>}
                                         </div>
                                     );
                                 })}
                                 {wd.bonusGuess !== null && (
                                     <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t border-white/5">
-                                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] ${wd.bonusWinner?'bg-amber-500/25 text-amber-400':'bg-white/10 text-white/30'}`}>
+                                        <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] ${wd.bonusWinner?'bg-amber-500/25 text-amber-400':'bg-white/10 text-white/75'}`}>
                                             {weekScores[w]?._meta?.bonusAnswer===null?'?':wd.bonusWinner?'★':'·'}
                                         </span>
-                                        <span className="text-white/30 flex-1">Goals guess</span>
-                                        <span className={`flex-shrink-0 font-medium ${wd.bonusWinner?'text-amber-400':'text-white/40'}`}>{wd.bonusGuess}</span>
+                                        <span className="text-white/75 flex-1">Goals guess</span>
+                                        <span className={`flex-shrink-0 font-medium ${wd.bonusWinner?'text-amber-400':'text-white/85'}`}>{wd.bonusGuess}</span>
                                     </div>
                                 )}
                             </div>
@@ -696,7 +696,7 @@ function ScheduleSection({ scheduleWeeks }) {
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <h2 className="text-white font-semibold">Schedule</h2>
-                        <div className="text-white/30 text-xs mt-0.5">{dr}</div>
+                        <div className="text-white/75 text-xs mt-0.5">{dr}</div>
                     </div>
                     <div className="text-pink-500 text-xs font-bold uppercase tracking-wider">Week {activeWeek.weekNum}</div>
                 </div>
@@ -719,21 +719,21 @@ function ScheduleSection({ scheduleWeeks }) {
                     return (
                         <div key={date}>
                             <div className={`px-5 py-2 text-xs font-semibold uppercase tracking-wider flex items-center gap-1.5
-                                ${today ? 'text-pink-400' : future ? 'text-white/50' : 'text-white/25'}`}>
+                                ${today ? 'text-pink-400' : future ? 'text-white/90' : 'text-white/70'}`}>
                                 {today && <span className="today-dot" />}
                                 {day} · {parseScheduleDate(date).toLocaleDateString('en-US', {month:'short', day:'numeric'})}
                                 {today && <span className="font-normal normal-case tracking-normal text-pink-400/70 ml-1">Today</span>}
                             </div>
                             {matches.map((m, i) => (
                                 <div key={i} className={`px-5 py-2.5 flex items-center gap-3 ${!future && !today ? 'opacity-40' : ''}`}>
-                                    <div className="text-white/30 text-xs w-14 flex-shrink-0">{m.time}</div>
+                                    <div className="text-white/75 text-xs w-14 flex-shrink-0">{m.time}</div>
                                     <div className="flex-1 min-w-0">
-                                        <span className={`text-sm ${today||future?'text-white/80':'text-white/50'}`}>
-                                            {m.home} <span className="text-white/25">vs</span> {m.away}
+                                        <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
+                                            {m.home} <span className="text-white/70">vs</span> {m.away}
                                         </span>
                                     </div>
                                     {m.broadcast && (
-                                        <div className="text-white/30 text-xs flex-shrink-0 text-right">{formatBroadcast(m.broadcast)}</div>
+                                        <div className="text-white/75 text-xs flex-shrink-0 text-right">{formatBroadcast(m.broadcast)}</div>
                                     )}
                                 </div>
                             ))}
@@ -774,7 +774,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
             <div className="px-5 pt-5 pb-3 flex items-center justify-between">
                 <div>
                     <h2 className="text-white font-semibold">Week {weekNum} — Picks</h2>
-                    <div className="text-white/30 text-xs mt-0.5">
+                    <div className="text-white/75 text-xs mt-0.5">
                         {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Results partial'}
                         {schedWeek && <span className="ml-2">{dateRange(schedWeek)}</span>}
                     </div>
@@ -803,20 +803,20 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             <div className="mb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="text-white text-sm font-medium">
-                                        {home} <span className="text-white/25">vs</span> {away}
+                                        {home} <span className="text-white/70">vs</span> {away}
                                     </div>
                                     {schedMatch?.broadcast && (
-                                        <div className="text-white/25 text-xs flex-shrink-0">{formatBroadcast(schedMatch.broadcast)}</div>
+                                        <div className="text-white/70 text-xs flex-shrink-0">{formatBroadcast(schedMatch.broadcast)}</div>
                                     )}
                                 </div>
                                 {schedMatch && (
-                                    <div className="text-white/25 text-xs mt-0.5">
+                                    <div className="text-white/70 text-xs mt-0.5">
                                         {schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {schedMatch.time}
                                     </div>
                                 )}
                                 {result
                                     ? <div className="text-green-400 text-xs mt-0.5 capitalize">Result: {result}</div>
-                                    : <div className="text-white/25 text-xs mt-0.5">Pending</div>
+                                    : <div className="text-white/70 text-xs mt-0.5">Pending</div>
                                 }
                             </div>
                             <div className="space-y-2">
@@ -828,11 +828,11 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
                                     return (
                                         <div key={outcome} className="flex items-center gap-2.5">
-                                            <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-green-400 font-semibold':'text-white/40'}`}>{outcome}</div>
+                                            <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-green-400 font-semibold':'text-white/85'}`}>{outcome}</div>
                                             <div className="flex-1 bg-white/10 rounded-full overflow-hidden" style={{height:4}}>
                                                 <div className={`pick-bar ${isResult?'bg-green-500':'bg-white/20'}`} style={{width:`${pct*100}%`}} />
                                             </div>
-                                            <div className="text-white/35 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
+                                            <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
                                             {isUnderdog && <span className="bonus-pill flex-shrink-0">★ bonus</span>}
                                         </div>
                                     );
@@ -843,17 +843,17 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                 })}
                 {bonusGuesses.length > 0 && (
                     <div className="px-5 py-4">
-                        <div className="text-white/40 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <div className="text-white/85 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span>Bonus: Total Goals</span>
                             {bonusAnswer!==null && <span className="text-white font-semibold normal-case tracking-normal">Actual: {bonusAnswer}</span>}
                         </div>
                         <div className="space-y-1.5">
                             {bonusGuesses.map(({player, guess, winner}) => (
                                 <div key={player} className="flex items-center gap-3 text-xs">
-                                    <span className={`flex-1 truncate ${winner?'text-amber-400 font-medium':'text-white/50'}`}>{player}</span>
-                                    <span className={`font-medium ${winner?'text-amber-400':'text-white/40'}`}>{guess}</span>
+                                    <span className={`flex-1 truncate ${winner?'text-amber-400 font-medium':'text-white/90'}`}>{player}</span>
+                                    <span className={`font-medium ${winner?'text-amber-400':'text-white/85'}`}>{guess}</span>
                                     {bonusAnswer!==null && (
-                                        <span className={`text-white/25 w-16 text-right ${winner?'text-amber-400/60':''}`}>
+                                        <span className={`text-white/70 w-16 text-right ${winner?'text-amber-400/60':''}`}>
                                             {winner ? '★ closest' : `off ${Math.abs(guess-bonusAnswer)}`}
                                         </span>
                                     )}
@@ -921,7 +921,7 @@ function App() {
 
     if (loading) return (
         <div className="page-bg min-h-screen flex items-center justify-center">
-            <div className="text-white/30 text-sm">Loading...</div>
+            <div className="text-white/75 text-sm">Loading...</div>
         </div>
     );
 
