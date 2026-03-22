@@ -24,6 +24,8 @@
         .pick-bar { height: 4px; border-radius: 2px; transition: width 0.5s ease; }
         .bonus-pill { background: linear-gradient(135deg, #7c3aed, #a855f7); font-size: 0.6rem; padding: 2px 6px; border-radius: 999px; color: white; line-height: 1.4; }
         .week-pill { padding: 4px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
+        .pills-scroll { scrollbar-width: none; }
+        .pills-scroll::-webkit-scrollbar { display: none; }
         .week-pill-active { background: #e91e8c; color: white; }
         .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
         .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
@@ -304,12 +306,11 @@ const WEEKS = [
     {
         week: 1,
         picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=1337876846',
-        results: {
-            // 'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit',
-        },
+        formUrl: '',
+        results: {},
         bonusAnswer: null,
     },
-    // { week: 2, picksUrl: '', results: {}, bonusAnswer: null },
+    // { week: 2, picksUrl: '', formUrl: '', results: {}, bonusAnswer: null },
 ];
 
 
@@ -968,22 +969,51 @@ function App() {
                 {computed && <PrizePool playerCount={computed.standings.length} />}
                 {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} />}
 
-                {computed && weeks.length > 0 && (
-                    <>
-                        <div className="flex gap-2 overflow-x-auto pb-1 mb-4">
-                            {weeks.map(w => (
-                                <button key={w} onClick={() => setActiveWeek(w)}
-                                    className={`week-pill ${displayWeek===w?'week-pill-active':'week-pill-inactive'}`}>
-                                    Week {w}
-                                </button>
-                            ))}
-                        </div>
-                        {displayWeek!==null && displayWeekDef && (
-                            <WeekSection weekNum={displayWeek} weekDef={displayWeekDef}
-                                weekScore={computed.weekScores[displayWeek]} scheduleWeeks={scheduleWeeks} />
-                        )}
-                    </>
-                )}
+                {computed && weeks.length > 0 && (() => {
+                    const picksWeekNums = new Set(weeks);
+                    const futureSchedWeeks = scheduleWeeks.filter(sw =>
+                        !picksWeekNums.has(sw.weekNum) &&
+                        sw.matches.every(m => isFuture(m.date))
+                    );
+                    const allWeekPills = [
+                        ...weeks.map(w => ({ weekNum: w, hasPicks: true })),
+                        ...futureSchedWeeks.map(sw => ({ weekNum: sw.weekNum, hasPicks: false })),
+                    ].sort((a, b) => a.weekNum - b.weekNum);
+                    return (
+                        <>
+                            <div className="pills-scroll flex gap-2 overflow-x-auto mb-6">
+                                {allWeekPills.map(({ weekNum, hasPicks }) => (
+                                    <button key={weekNum} onClick={() => setActiveWeek(weekNum)}
+                                        className={`week-pill ${displayWeek===weekNum?'week-pill-active':'week-pill-inactive'}`}>
+                                        {weekNum === 1 ? 'Week 1' : weekNum}
+                                    </button>
+                                ))}
+                            </div>
+                            {displayWeek!==null && (() => {
+                                const weekDef = picks?.find(w => w.week === displayWeek);
+                                if (weekDef) return (
+                                    <WeekSection weekNum={displayWeek} weekDef={weekDef}
+                                        weekScore={computed.weekScores[displayWeek]} scheduleWeeks={scheduleWeeks} />
+                                );
+                                const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
+                                const weekConfig = WEEKS.find(w => w.week === displayWeek);
+                                return (
+                                    <div className="card p-5 text-center mb-5">
+                                        <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
+                                        {sw && <div className="text-white/75 text-sm mb-4">{dateRange(sw)}</div>}
+                                        {weekConfig?.formUrl
+                                            ? <a href={weekConfig.formUrl} target="_blank" rel="noopener noreferrer"
+                                                className="inline-block bg-pink-500 hover:bg-pink-400 text-white font-semibold px-6 py-2 rounded-full text-sm transition-colors">
+                                                Open Form
+                                              </a>
+                                            : <div className="text-white/60 text-sm">Form link coming soon</div>
+                                        }
+                                    </div>
+                                );
+                            })()}
+                        </>
+                    );
+                })()}
 
                 {scheduleWeeks.length > 0 && <ScheduleSection scheduleWeeks={scheduleWeeks} />}
 
