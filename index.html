@@ -379,6 +379,7 @@ function parseSchedule(csvText) {
                     home, away,
                     broadcast: (row['Broadcast'] || '').trim(),
                     winner: (row['Winner'] || '').trim(),
+                    score: (row['Score'] || '').trim(),
                 });
             }
         }
@@ -811,15 +812,16 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         {formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}
                                     </div>
                                 </div>
-                                {schedMatch && (
-                                    <div className="text-white/70 text-xs mt-0.5">
-                                        {schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {schedMatch.time}
-                                    </div>
-                                )}
-                                {result
-                                    ? <div className="text-pink-400 text-xs mt-0.5">Result: {formatTeamName(result.replace(/\b\w/g, c => c.toUpperCase()))}</div>
-                                    : <div className="text-white/70 text-xs mt-0.5">Pending</div>
-                                }
+                                <div className="flex justify-between items-center mt-0.5">
+                                    {schedMatch
+                                        ? <div className="text-white/70 text-xs">{schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {schedMatch.time}</div>
+                                        : <div />
+                                    }
+                                    {result
+                                        ? <div className="text-pink-400 text-xs">Result: {schedMatch?.score || formatTeamName(result.replace(/\b\w/g, c => c.toUpperCase()))}</div>
+                                        : <div className="text-white/70 text-xs">Pending</div>
+                                    }
+                                </div>
                             </div>
                             <div className="space-y-2">
                                 {outcomes.map(outcome => {
@@ -835,7 +837,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                                 <div className={`pick-bar ${isResult?'bg-pink-500':'bg-white'}`} style={{width:`${pct*100}%`}} />
                                             </div>
                                             <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
-                                            {isUnderdog && <span className="bonus-pill flex-shrink-0" title="bonus">★</span>}
+                                            <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>{isUnderdog && <span className="bonus-pill" title="bonus">★</span>}</span>
                                         </div>
                                     );
                                 })}
