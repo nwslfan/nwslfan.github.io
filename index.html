@@ -826,7 +826,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     const normO = normalizeResult(outcome);
                                     const count = matchDist[normO]||0;
                                     const pct = total > 0 ? count/total : 0;
-                                    const isResult = normO===result;
+                                    const isResult = result !== undefined && normTeam(outcome)===result;
                                     const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
                                     return (
                                         <div key={outcome} className="flex items-center gap-2.5">
