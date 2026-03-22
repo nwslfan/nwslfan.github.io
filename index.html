@@ -416,6 +416,16 @@ function formatLocalTime(dateStr, timeStr) {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' });
 }
 
+function getPicksDeadline(schedWeek) {
+    if (!schedWeek?.matches?.length) return null;
+    const firstGame = new Date(Math.min(...schedWeek.matches.map(m => parseScheduleDate(m.date))));
+    const daysToWed = (firstGame.getDay() - 3 + 7) % 7;
+    const wed = new Date(firstGame);
+    wed.setDate(firstGame.getDate() - daysToWed);
+    const m = wed.getMonth() + 1, d = wed.getDate(), y = wed.getFullYear();
+    return pacificToDate(`${m}/${d}/${y}`, '12:00 PM');
+}
+
 function dateRange(week) {
     if (!week?.matches?.length) return '';
     const dates = week.matches.map(m => parseScheduleDate(m.date));
@@ -1020,10 +1030,13 @@ function App() {
                                 );
                                 const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
                                 const weekConfig = WEEKS.find(w => w.week === displayWeek);
+                                const deadline = sw ? getPicksDeadline(sw) : null;
+                                const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
                                 return (
                                     <div className="card p-5 text-center mb-5">
                                         <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
-                                        {sw && <div className="text-white/75 text-sm mb-4">{dateRange(sw)}</div>}
+                                        {sw && <div className="text-white/75 text-sm mb-1">{dateRange(sw)}</div>}
+                                        {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
                                         {weekConfig?.formUrl
                                             ? <a href={weekConfig.formUrl} target="_blank" rel="noopener noreferrer"
                                                 className="inline-block bg-pink-500 hover:bg-pink-400 text-white font-semibold px-6 py-2 rounded-full text-sm transition-colors">
