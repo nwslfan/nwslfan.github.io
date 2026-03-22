@@ -378,6 +378,7 @@ function parseSchedule(csvText) {
                     time: (row['Time'] || '').trim(),
                     home, away,
                     broadcast: (row['Broadcast'] || '').trim(),
+                    winner: (row['Winner'] || '').trim(),
                 });
             }
         }
@@ -879,9 +880,10 @@ function App() {
     useEffect(() => {
         async function load() {
             // Always try to fetch the schedule
+            let liveSchedule = parseSchedule(SCHEDULE_CSV);
             try {
                 const r = await fetch(SCHEDULE_URL);
-                if (r.ok) setScheduleWeeks(parseSchedule(await r.text()));
+                if (r.ok) { liveSchedule = parseSchedule(await r.text()); setScheduleWeeks(liveSchedule); }
             } catch (e) { /* schedule is optional display data */ }
 
             const configured = WEEKS.filter(w => w.picksUrl);
@@ -898,7 +900,22 @@ function App() {
                 try {
                     const r = await fetch(wk.picksUrl);
                     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    return { ...wk, picks: parseFormCSV(await r.text()) };
+                    const picks = parseFormCSV(await r.text());
+                    // Derive results from schedule winners
+                    const sw = liveSchedule.find(w => w.weekNum === wk.week);
+                    const derivedResults = {};
+                    if (sw && picks.length > 0) {
+                        const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
+                        matchCols.forEach(col => {
+                            const parts = col.split(/ vs /i);
+                            if (parts.length !== 2) return;
+                            const [h, a] = parts.map(s => s.trim());
+                            const m = sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
+                            if (m?.winner) derivedResults[col] = m.winner;
+                        });
+                    }
+                    // Manual results in WEEKS config take precedence
+                    return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
                 } catch (e) {
                     errs.push(`Week ${wk.week}: ${e.message}`);
                     return { ...wk, picks: [] };
