@@ -805,9 +805,6 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     <div className="text-white text-sm font-medium">
                                         {home} <span className="text-white/70">vs</span> {away}
                                     </div>
-                                    {schedMatch?.broadcast && (
-                                        <div className="text-white/70 text-xs flex-shrink-0">{formatBroadcast(schedMatch.broadcast)}</div>
-                                    )}
                                 </div>
                                 {schedMatch && (
                                     <div className="text-white/70 text-xs mt-0.5">
