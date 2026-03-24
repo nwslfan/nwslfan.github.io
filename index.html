@@ -1002,6 +1002,11 @@ function App() {
                 {errors.map((e,i) => <div key={i} className="error-banner">{e}</div>)}
 
                 {computed && <PrizePool playerCount={computed.standings.length} />}
+
+                <div className="card p-5 mb-5 text-white/85 text-sm leading-relaxed">
+                    An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players.
+                </div>
+
                 {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} />}
 
                 {computed && weeks.length > 0 && (() => {
