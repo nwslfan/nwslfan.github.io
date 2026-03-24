@@ -786,10 +786,12 @@ function ScheduleSection({ scheduleWeeks }) {
                                     <div className="text-white/75 text-xs w-24 flex-shrink-0">{formatLocalTime(m.date, m.time)}</div>
                                     <div className="flex-1 min-w-0">
                                         <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
-                                            {formatTeamName(m.home)} <span className="text-white/70">vs</span> {formatTeamName(m.away)}
+                                            {(() => { const sg = m.score?.match(/(\d+)\s*[–-]\s*(\d+)/); return sg
+                                                ? <>{formatTeamName(m.home)} <span className="text-white/70">{sg[1]}–{sg[2]}</span> {formatTeamName(m.away)}</>
+                                                : <>{formatTeamName(m.home)} <span className="text-white/70">vs</span> {formatTeamName(m.away)}</>; })()}
                                         </span>
                                     </div>
-                                    {m.broadcast && (
+                                    {!m.score && m.broadcast && (
                                         <div className="text-white/75 text-xs flex-shrink-0 text-right">{formatBroadcast(m.broadcast)}</div>
                                     )}
                                 </a>
