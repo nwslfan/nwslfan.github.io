@@ -311,7 +311,7 @@ const WEEKS = [
         results: {},
         bonusAnswer: null,
     },
-    // { week: 2, picksUrl: '', formUrl: '', results: {}, bonusAnswer: null },
+    { week: 2, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=806753921', formUrl: '', results: {}, bonusAnswer: null },
     { week: 3, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
     { week: 4, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', results: {}, bonusAnswer: null },
     { week: 5, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxB8yqBNmso4_xqm37KPyoT1ehdufLDQx1cGTRITFHzDTm-Q/viewform', results: {}, bonusAnswer: null },
@@ -865,13 +865,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         {schedMatch?.score ? formatScore(schedMatch.score) : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
                                     </div>
                                 </div>
-                                <div className="flex justify-between items-center mt-0.5">
-                                    {schedMatch
-                                        ? <div className="text-white/70 text-xs">{schedMatch.day} {parseScheduleDate(schedMatch.date).toLocaleDateString('en-US',{month:'short',day:'numeric'})} · {formatLocalTime(schedMatch.date, schedMatch.time)}</div>
-                                        : <div />
-                                    }
-                                    {!result && <div className="text-white/70 text-xs">Pending</div>}
-                                </div>
+                                {!result && <div className="text-white/70 text-xs mt-0.5">Pending</div>}
                             </div>
                             <div className="space-y-2">
                                 {outcomes.map(outcome => {
