@@ -30,6 +30,8 @@
         .week-pill-active { background: #e91e8c; color: white; }
         .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
         .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
+        .week-pill-current { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+        .week-pill-current-gold { box-shadow: 0 0 0 2px #f59e0b; }
         .today-dot { width: 6px; height: 6px; background: #e91e8c; border-radius: 50%; display: inline-block; margin-right: 4px; }
         .demo-banner { background: rgba(245,158,11,0.1); border: 1px solid rgba(245,158,11,0.2); border-radius: 0.75rem; color: rgba(245,158,11,0.8); font-size: 0.75rem; padding: 10px 14px; margin-bottom: 1.5rem; }
         .error-banner { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); border-radius: 0.75rem; color: rgba(239,68,68,0.8); font-size: 0.75rem; padding: 10px 14px; margin-bottom: 1rem; }
@@ -758,14 +760,17 @@ function ScheduleSection({ scheduleWeeks }) {
                 </div>
                 {/* Week selector */}
                 <div className="pills-scroll flex gap-1.5 overflow-x-auto">
-                    {scheduleWeeks.map(w => (
-                        <button key={w.weekNum}
-                            onClick={() => setViewWeekNum(w.weekNum)}
-                            className={`week-pill flex-shrink-0 ${activeWeek.weekNum===w.weekNum?'week-pill-active':'week-pill-inactive'}`}
-                            style={{padding:'3px 10px', fontSize:'0.7rem'}}>
-                            {w.weekNum}
-                        </button>
-                    ))}
+                    {scheduleWeeks.map(w => {
+                        const isCurrent = w.weekNum === currentScheduleWeek(scheduleWeeks)?.weekNum;
+                        return (
+                            <button key={w.weekNum}
+                                onClick={() => setViewWeekNum(w.weekNum)}
+                                className={`week-pill flex-shrink-0 ${activeWeek.weekNum===w.weekNum?'week-pill-active':'week-pill-inactive'}${isCurrent?' week-pill-current-gold':''}`}
+                                style={{padding:'3px 10px', fontSize:'0.7rem'}}>
+                                {w.weekNum}
+                            </button>
+                        );
+                    })}
                 </div>
             </div>
             <div className="divide-y divide-white/5">
@@ -982,7 +987,7 @@ function App() {
 
     const computed = useMemo(() => picks ? computeAll(picks) : null, [picks]);
     const weeks = computed?.weeks || [];
-    const displayWeek = activeWeek ?? (weeks.length > 0 ? weeks[weeks.length-1] : null);
+    const displayWeek = activeWeek ?? currentScheduleWeek(scheduleWeeks)?.weekNum ?? (weeks.length > 0 ? weeks[weeks.length-1] : null);
     const displayWeekDef = picks?.find(w => w.week === displayWeek);
 
     if (loading) return (
@@ -1026,12 +1031,14 @@ function App() {
                     return (
                         <>
                             <div className="pills-scroll flex gap-2 overflow-x-auto mb-6">
-                                {allWeekPills.map(({ weekNum, hasPicks }) => (
+                                {allWeekPills.map(({ weekNum, hasPicks }) => {
+                                    const isCurrent = weekNum === currentScheduleWeek(scheduleWeeks)?.weekNum;
+                                    return (
                                     <button key={weekNum} onClick={() => setActiveWeek(weekNum)}
-                                        className={`week-pill ${displayWeek===weekNum?'week-pill-active':'week-pill-inactive'}`}>
+                                        className={`week-pill ${displayWeek===weekNum?'week-pill-active':'week-pill-inactive'}${isCurrent?' week-pill-current-gold':''}`}>
                                         {weekNum === 1 ? 'Week 1' : weekNum}
-                                    </button>
-                                ))}
+                                    </button>);
+                                })}
                             </div>
                             {displayWeek!==null && (() => {
                                 const weekDef = picks?.find(w => w.week === displayWeek);
