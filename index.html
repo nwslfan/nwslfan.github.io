@@ -601,13 +601,14 @@ function computeAll(weekData) {
     const standings = allPlayers.map(player => {
         const totalCorrect = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
         const totalUnderdogBonus = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
+        const totalPicks = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.length || 0), 0);
+        const scorePct = totalPicks > 0 ? Math.round((totalCorrect + totalUnderdogBonus) / totalPicks * 1000) / 10 : 0;
         const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
-        return { player, totalCorrect, totalUnderdogBonus, weeklyWins, bonusWins };
+        return { player, totalCorrect, totalUnderdogBonus, totalPicks, scorePct, weeklyWins, bonusWins };
     });
     standings.sort((a,b) => {
-        const ta = a.totalCorrect + a.totalUnderdogBonus, tb = b.totalCorrect + b.totalUnderdogBonus;
-        if (tb !== ta) return tb - ta;
+        if (b.scorePct !== a.scorePct) return b.scorePct - a.scorePct;
         if (b.totalCorrect !== a.totalCorrect) return b.totalCorrect - a.totalCorrect;
         if (b.weeklyWins !== a.weeklyWins) return b.weeklyWins - a.weeklyWins;
         return b.bonusWins - a.bonusWins;
@@ -645,15 +646,15 @@ function PrizePool({ playerCount }) {
 
 function Leaderboard({ standings, weekScores, weeks }) {
     const [expanded, setExpanded] = useState(null);
-    const maxPts = standings.length > 0 ? standings[0].totalCorrect + standings[0].totalUnderdogBonus : 1;
+    const maxPct = standings.length > 0 ? standings[0].scorePct || 1 : 1;
     return (
         <div className="card mb-5 overflow-hidden">
-            <div className="px-5 pt-5 pb-2">
+            <div className="px-5 pt-5 pb-2 flex items-center justify-between">
                 <div className="text-white/85 text-xs uppercase tracking-widest">Standings</div>
+                <div className="text-white/45 text-xs uppercase tracking-widest">Accuracy</div>
             </div>
             {standings.map((s, i) => {
-                const total = s.totalCorrect + s.totalUnderdogBonus;
-                const pct = maxPts > 0 ? (total / maxPts) * 100 : 0;
+                const pct = (s.scorePct / maxPct) * 100;
                 const isOpen = expanded === s.player;
                 const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
                 return (
@@ -672,8 +673,7 @@ function Leaderboard({ standings, weekScores, weeks }) {
                                 </div>
                             </div>
                             <div className="text-right flex-shrink-0">
-                                <div className="text-white font-bold text-xl leading-none">{total}</div>
-                                <div className="text-white/75 text-xs mt-0.5">{s.totalCorrect} + <span className="text-purple-400">{s.totalUnderdogBonus}★</span></div>
+                                <div className="text-white font-bold text-xl leading-none">{s.scorePct}%</div>
                             </div>
                         </button>
                         {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={weeks} />}
