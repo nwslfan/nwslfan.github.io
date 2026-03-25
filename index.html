@@ -697,7 +697,7 @@ function PickHistory({ player, weekScores, weeks }) {
                             <div className="flex justify-between items-center mb-2">
                                 <span className="text-white/90 text-xs font-medium">Week {w}</span>
                                 <span className="text-white text-xs">{wd.total} pt{wd.total!==1?'s':''}
-                                    {wd.underdogBonus > 0 && <span className="text-purple-400"> (+{wd.underdogBonus} bonus)</span>}
+                                    {wd.underdogBonus > 0 && <span className="text-purple-400"> ({wd.underdogBonus} bonus)</span>}
                                 </span>
                             </div>
                             <div className="space-y-1.5">
