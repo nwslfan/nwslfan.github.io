@@ -308,12 +308,13 @@ const CONFIG = {
 const WEEKS = [
     {
         week: 1,
+        hidden: true,
         picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=1337876846',
         formUrl: '',
         results: {},
         bonusAnswer: null,
     },
-    { week: 2, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=806753921', formUrl: '', results: {}, bonusAnswer: null },
+    { week: 2, hidden: true, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=806753921', formUrl: '', results: {}, bonusAnswer: null },
     { week: 3, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=1863515055', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
     { week: 4, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', results: {}, bonusAnswer: null },
     { week: 5, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxB8yqBNmso4_xqm37KPyoT1ehdufLDQx1cGTRITFHzDTm-Q/viewform', results: {}, bonusAnswer: null },
@@ -602,7 +603,7 @@ function computeAll(weekData) {
     const standings = allPlayers.map(player => {
         const totalCorrect = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
         const totalUnderdogBonus = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
-        const totalPicks = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.length || 0), 0);
+        const totalPicks = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.filter(p => p.result !== null).length || 0), 0);
         const scorePct = totalPicks > 0 ? Math.round((totalCorrect + totalUnderdogBonus) / totalPicks * 1000) / 10 : 0;
         const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
@@ -702,7 +703,7 @@ function PickHistory({ player, weekScores, weeks }) {
                                 </span>
                             </div>
                             <div className="space-y-1.5">
-                                {wd.picks.map((pick, i) => {
+                                {wd.picks.filter(pick => pick.result !== null).map((pick, i) => {
                                     const parts = pick.match.split(/ vs /i);
                                     const label = parts.length === 2 ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}` : formatTeamName(pick.match);
                                     return (
@@ -717,7 +718,7 @@ function PickHistory({ player, weekScores, weeks }) {
                                         </div>
                                     );
                                 })}
-                                {wd.bonusGuess !== null && (
+                                {wd.bonusGuess !== null && weekScores[w]?._meta?.bonusAnswer !== null && (
                                     <div className="flex items-center gap-2 text-xs mt-2 pt-2 border-t border-white/5">
                                         <span className={`w-4 h-4 rounded-full flex-shrink-0 flex items-center justify-center text-[9px] ${wd.bonusWinner?'bg-amber-500/25 text-amber-400':'bg-white/10 text-white/75'}`}>
                                             {weekScores[w]?._meta?.bonusAnswer===null?'?':wd.bonusWinner?'★':'·'}
@@ -788,7 +789,7 @@ function ScheduleSection({ scheduleWeeks }) {
                             </div>
                             {matches.map((m, i) => (
                                 <a key={i} href={`https://www.google.com/search?q=${encodeURIComponent(`${m.home} vs ${m.away} ${m.date}`)}`} target="_blank" rel="noopener noreferrer"
-                                    className={`px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-white/5 ${!future && !today ? 'opacity-40' : ''}`}>
+                                    className={`px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-white/5 ${(!future && !today) || m.score ? 'opacity-40' : ''}`}>
                                     <div className="text-white/75 text-xs w-24 flex-shrink-0">{formatLocalTime(m.date, m.time)}</div>
                                     <div className="flex-1 min-w-0">
                                         <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
@@ -817,7 +818,8 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
 
     const allMatches = new Set();
     Object.values(weekScore||{}).forEach(ps => { if (ps._meta) return; ps.picks?.forEach(p => allMatches.add(p.match)); });
-    const matchList = [...allMatches];
+    const allMatchList = [...allMatches];
+    const matchList = allMatchList.filter(m => normResults[m.toLowerCase().trim()] !== undefined);
 
     const winnerPlayers = Object.entries(weekScore||{}).filter(([k])=>k!=='_meta').map(([p,s])=>({player:p,total:s.total}));
     const maxWk = winnerPlayers.length > 0 ? Math.max(...winnerPlayers.map(s=>s.total)) : 0;
@@ -829,7 +831,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
         .sort((a,b) => bonusAnswer!==null ? Math.abs(a.guess-bonusAnswer)-Math.abs(b.guess-bonusAnswer) : a.guess-b.guess);
 
     const hasResults = Object.keys(results).length > 0;
-    const allIn = matchList.length > 0 && matchList.every(m => normResults[m.toLowerCase().trim()] !== undefined);
+    const allIn = allMatchList.length > 0 && allMatchList.every(m => normResults[m.toLowerCase().trim()] !== undefined);
 
     // Try to find matching schedule week (same week num)
     const schedWeek = scheduleWeeks?.find(w => w.weekNum === weekNum);
@@ -840,11 +842,11 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                 <div>
                     <h2 className="text-white font-semibold">Week {weekNum} — Picks</h2>
                     <div className="text-white/75 text-xs mt-0.5">
-                        {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Results partial'}
+                        {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Partial results'}
                         {schedWeek && <span className="ml-2">{dateRange(schedWeek)}</span>}
                     </div>
                 </div>
-                {weekWinners.length > 0 && (
+                {allIn && weekWinners.length > 0 && (
                     <div className="text-amber-400 text-xs text-right">
                         🏆 {weekWinners.length===1 ? weekWinners[0] : `${weekWinners.length}-way tie`}
                     </div>
@@ -896,7 +898,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     );
                 })}
-                {hasResults && bonusGuesses.length > 0 && (
+                {allIn && bonusGuesses.length > 0 && (
                     <div className="px-5 py-4">
                         <div className="text-white/85 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span>Bonus: Total Goals</span>
@@ -946,7 +948,7 @@ function App() {
                 if (r.ok) { liveSchedule = parseSchedule(await r.text()); setScheduleWeeks(liveSchedule); }
             } catch (e) { /* schedule is optional display data */ }
 
-            const configured = WEEKS.filter(w => w.picksUrl);
+            const configured = WEEKS.filter(w => w.picksUrl && !w.hidden);
             if (configured.length === 0) {
                 setPicks(DEMO_WEEKS);
                 setUsingDemo(true);
@@ -1018,7 +1020,7 @@ function App() {
 
                 {computed && weeks.length > 0 && (() => {
                     const picksWeekNums = new Set(weeks);
-                    const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.picksUrl && !picksWeekNums.has(w.week));
+                    const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.picksUrl && !w.hidden && !picksWeekNums.has(w.week));
                     const formOnlyNums = new Set(formOnlyWeeks.map(w => w.week));
                     const futureSchedWeeks = scheduleWeeks.filter(sw =>
                         !picksWeekNums.has(sw.weekNum) &&
@@ -1038,7 +1040,7 @@ function App() {
                                     return (
                                     <button key={weekNum} onClick={() => setActiveWeek(weekNum)}
                                         className={`week-pill ${displayWeek===weekNum?'week-pill-active':'week-pill-inactive'}${isCurrent?' week-pill-current-gold':''}`}>
-                                        {weekNum === 1 ? 'Week 1' : weekNum}
+                                        {weekNum === 3 ? 'Week 3' : weekNum}
                                     </button>);
                                 })}
                             </div>
