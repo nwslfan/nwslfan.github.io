@@ -600,12 +600,17 @@ function computeAll(weekData) {
     });
 
     const scoredWeeks = weekData.filter(w => Object.keys(w.results || {}).length > 0).map(w => w.week);
+    const fullyScored = new Set(weekData.filter(wd => {
+        const { dist={}, normResults={} } = weekScores[wd.week]?._meta || {};
+        const allMatches = Object.keys(dist);
+        return allMatches.length > 0 && allMatches.every(m => normResults[m.toLowerCase().trim()] !== undefined);
+    }).map(wd => wd.week));
     const standings = allPlayers.map(player => {
         const totalCorrect = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
         const totalUnderdogBonus = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
         const totalPicks = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.filter(p => p.result !== null).length || 0), 0);
         const scorePct = totalPicks > 0 ? Math.round((totalCorrect + totalUnderdogBonus) / totalPicks * 1000) / 10 : 0;
-        const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
+        const weeklyWins = weeks.filter(w => fullyScored.has(w) && weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
         return { player, totalCorrect, totalUnderdogBonus, totalPicks, scorePct, weeklyWins, bonusWins };
     });
