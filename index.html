@@ -314,7 +314,7 @@ const WEEKS = [
         bonusAnswer: null,
     },
     { week: 2, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=806753921', formUrl: '', results: {}, bonusAnswer: null },
-    { week: 3, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
+    { week: 3, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=1863515055', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
     { week: 4, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', results: {}, bonusAnswer: null },
     { week: 5, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxB8yqBNmso4_xqm37KPyoT1ehdufLDQx1cGTRITFHzDTm-Q/viewform', results: {}, bonusAnswer: null },
 ];
@@ -598,10 +598,11 @@ function computeAll(weekData) {
         weeklyWinners[w] = max > 0 ? scores.filter(s => s.total === max).map(s => s.player) : [];
     });
 
+    const scoredWeeks = weekData.filter(w => Object.keys(w.results || {}).length > 0).map(w => w.week);
     const standings = allPlayers.map(player => {
-        const totalCorrect = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
-        const totalUnderdogBonus = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
-        const totalPicks = weeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.length || 0), 0);
+        const totalCorrect = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.correct || 0), 0);
+        const totalUnderdogBonus = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.underdogBonus || 0), 0);
+        const totalPicks = scoredWeeks.reduce((s,w) => s + (weekScores[w]?.[player]?.picks?.length || 0), 0);
         const scorePct = totalPicks > 0 ? Math.round((totalCorrect + totalUnderdogBonus) / totalPicks * 1000) / 10 : 0;
         const weeklyWins = weeks.filter(w => weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
@@ -613,7 +614,7 @@ function computeAll(weekData) {
         if (b.weeklyWins !== a.weeklyWins) return b.weeklyWins - a.weeklyWins;
         return b.bonusWins - a.bonusWins;
     });
-    return { standings, weeks, weekScores, weeklyWinners };
+    return { standings, weeks, scoredWeeks, weekScores, weeklyWinners };
 }
 
 
@@ -644,7 +645,7 @@ function PrizePool({ playerCount }) {
     );
 }
 
-function Leaderboard({ standings, weekScores, weeks }) {
+function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
     const [expanded, setExpanded] = useState(null);
     const maxPct = standings.length > 0 ? standings[0].scorePct || 1 : 1;
     return (
@@ -676,7 +677,7 @@ function Leaderboard({ standings, weekScores, weeks }) {
                                 <div className="text-white font-bold text-xl leading-none">{s.scorePct}%</div>
                             </div>
                         </button>
-                        {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={weeks} />}
+                        {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={scoredWeeks} />}
                     </div>
                 );
             })}
@@ -849,8 +850,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     </div>
                 )}
             </div>
+            {!hasResults && <div className="px-5 py-6 text-center text-white/60 text-sm">Picks are in — results pending</div>}
             <div className="divide-y divide-white/5">
-                {matchList.map((match, i) => {
+                {hasResults && matchList.map((match, i) => {
                     const normKey = match.toLowerCase().trim();
                     const result = normResults[normKey];
                     const matchDist = dist[match] || { total: 0 };
@@ -894,7 +896,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     );
                 })}
-                {bonusGuesses.length > 0 && (
+                {hasResults && bonusGuesses.length > 0 && (
                     <div className="px-5 py-4">
                         <div className="text-white/85 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
                             <span>Bonus: Total Goals</span>
@@ -915,9 +917,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     </div>
                 )}
-                <div className="px-5 py-3 border-t border-white/10 text-white/60 text-xs text-center">
+                {hasResults && <div className="px-5 py-3 border-t border-white/10 text-white/60 text-xs text-center">
                     <span className="bonus-pill inline-block mr-1">★</span> Underdog bonus — extra point for correctly picking a team chosen by fewer than 30% of players
-                </div>
+                </div>}
             </div>
         </div>
     );
@@ -1012,7 +1014,7 @@ function App() {
                     An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players.
                 </div>
 
-                {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} />}
+                {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} />}
 
                 {computed && weeks.length > 0 && (() => {
                     const picksWeekNums = new Set(weeks);
