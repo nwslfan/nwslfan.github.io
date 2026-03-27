@@ -316,10 +316,11 @@ const WEEKS = [
     },
     { week: 2, hidden: true, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=806753921', formUrl: '', results: {}, bonusAnswer: null },
     { week: 3, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=1863515055', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfk2C9Cc4GokfnWhAZQaw4iZrvlKQVmtQ9-NI0122riwrylmA/viewform', results: {}, bonusAnswer: null },
-    { week: 4, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', results: {}, bonusAnswer: null },
+    { week: 4, picksUrl: 'https://docs.google.com/spreadsheets/d/1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI/export?format=csv&gid=719826179', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSdZdKHoPIPB1XrmumAvxpJJEpQXEXEfHSo0SdxbHOK6NTWbQQ/viewform', formClosesAt: '2026-04-01T19:00:00Z', results: {}, bonusAnswer: null },
     { week: 5, picksUrl: '', formUrl: 'https://docs.google.com/forms/d/e/1FAIpQLSfxB8yqBNmso4_xqm37KPyoT1ehdufLDQx1cGTRITFHzDTm-Q/viewform', results: {}, bonusAnswer: null },
 ];
 
+const formIsOpen = w => w.formClosesAt && new Date() < new Date(w.formClosesAt);
 
 // ================================================================
 // DEMO DATA
@@ -1025,7 +1026,7 @@ function App() {
 
                 {computed && weeks.length > 0 && (() => {
                     const picksWeekNums = new Set(weeks);
-                    const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.picksUrl && !w.hidden && !picksWeekNums.has(w.week));
+                    const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.hidden && !picksWeekNums.has(w.week) && (!w.picksUrl || formIsOpen(w)));
                     const formOnlyNums = new Set(formOnlyWeeks.map(w => w.week));
                     const futureSchedWeeks = scheduleWeeks.filter(sw =>
                         !picksWeekNums.has(sw.weekNum) &&
@@ -1051,14 +1052,15 @@ function App() {
                             </div>
                             {displayWeek!==null && (() => {
                                 const weekDef = picks?.find(w => w.week === displayWeek);
-                                if (weekDef) return (
+                                if (weekDef && !formIsOpen(weekDef)) return (
                                     <WeekSection weekNum={displayWeek} weekDef={weekDef}
                                         weekScore={computed.weekScores[displayWeek]} scheduleWeeks={scheduleWeeks} />
                                 );
                                 const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
-                                const weekConfig = WEEKS.find(w => w.week === displayWeek);
+                                const weekConfig = weekDef || WEEKS.find(w => w.week === displayWeek);
                                 const deadline = sw ? getPicksDeadline(sw) : null;
                                 const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
+                                const submitters = weekDef?.picks?.map(p => p.player);
                                 return (
                                     <div className="card p-5 text-center mb-5">
                                         <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
@@ -1071,6 +1073,14 @@ function App() {
                                               </a>
                                             : <div className="text-white/60 text-sm">Form link coming soon</div>
                                         }
+                                        {submitters && submitters.length > 0 && (
+                                            <div className="mt-4 text-left">
+                                                <div className="text-white/60 text-xs mb-1">{submitters.length} submitted so far:</div>
+                                                {submitters.map(name => (
+                                                    <div key={name} className="text-white/85 text-sm">{name}</div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </div>
                                 );
                             })()}
