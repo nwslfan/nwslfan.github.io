@@ -950,7 +950,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     <span className={`font-medium ${winner?'text-amber-400':'text-white/85'}`}>{guess}</span>
                                     {bonusAnswer!==null && (
                                         <span className={`text-white/70 w-16 text-right ${winner?'text-amber-400/60':''}`}>
-                                            {winner ? '★ closest' : `off ${Math.abs(guess-bonusAnswer)}`}
+                                            {winner ? '★ closest' : `off by ${Math.abs(guess-bonusAnswer)}`}
                                         </span>
                                     )}
                                 </div>
@@ -1040,30 +1040,42 @@ function App() {
                 const sw = liveSchedule.find(w => w.weekNum === wk.week);
                 const derivedResults = {};
                 const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
-                matchCols.forEach(col => {
+                // validCols = pick columns that are in this week's schedule
+                const validCols = new Set(matchCols.filter(col => {
                     const parts = col.split(/ vs /i);
-                    if (parts.length !== 2) return;
+                    if (parts.length !== 2) return false;
                     const [h, a] = parts.map(s => s.trim());
-                    // Skip picks for games not in this week's schedule
-                    if (sw && !sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a))) return;
+                    return !sw || !!sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
+                }));
+                validCols.forEach(col => {
+                    const [h, a] = col.split(/ vs /i).map(s => s.trim());
                     const g = allGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
                     if (g?.winner) derivedResults[col] = g.winner;
                 });
-                // Compute bonus answer (total goals) from game scores if not manually set
-                const weekMatches = sw?.matches || [];
-                const weekGames = weekMatches
-                    .map(m => allGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away)))
-                    .filter(Boolean);
-                const allComplete = weekGames.length > 0 && weekGames.length === weekMatches.length && weekGames.every(g => g.score);
-                const computedBonus = allComplete
-                    ? weekGames.reduce((sum, g) => {
-                        const [h, a] = g.score.split('-').map(Number);
+                // Filter picks to only include valid (in-schedule) columns so invalid picks
+                // (e.g. wrong-week games) don't affect allIn or bonus computation.
+                const filteredPicks = picks.map(p => ({
+                    ...p,
+                    picks: Object.fromEntries(Object.entries(p.picks).filter(([col]) => validCols.has(col)))
+                }));
+                // Compute bonus answer (total goals) from valid pick games with known scores.
+                const bonusScores = [];
+                let allHaveScores = validCols.size > 0;
+                validCols.forEach(col => {
+                    const [h, a] = col.split(/ vs /i).map(s => s.trim());
+                    const g = allGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
+                    if (g?.score) { bonusScores.push(g.score); }
+                    else { allHaveScores = false; }
+                });
+                const computedBonus = allHaveScores
+                    ? bonusScores.reduce((sum, score) => {
+                        const [h, a] = score.split('-').map(Number);
                         return sum + (isNaN(h) || isNaN(a) ? 0 : h + a);
                       }, 0)
                     : null;
                 const bonusAnswer = (wk.bonusAnswer !== null && wk.bonusAnswer !== undefined) ? wk.bonusAnswer : computedBonus;
                 // Manual results in WEEKS config take precedence
-                return { ...wk, picks, results: { ...derivedResults, ...wk.results }, bonusAnswer };
+                return { ...wk, picks: filteredPicks, results: { ...derivedResults, ...wk.results }, bonusAnswer };
             });
 
             setErrors(errs);
