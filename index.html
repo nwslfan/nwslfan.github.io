@@ -519,7 +519,9 @@ function parseFormCSV(csvText) {
     const { data } = Papa.parse(csvText, { header: true, skipEmptyLines: true });
     if (!data.length) return [];
     const headers = Object.keys(data[0]);
-    const teamNameCol = headers.find(h => /team.?name/i.test(h));
+    const teamNameCols = headers.filter(h => /team.?name/i.test(h));
+    const teamNameCol = teamNameCols[0];
+    const nicknamCol  = teamNameCols[1];
     const fullNameCol = headers.find(h => /full.?name/i.test(h) && !/team/i.test(h));
     const emailCol    = headers.find(h => /email/i.test(h));
     const tsCol       = headers.find(h => /timestamp/i.test(h));
@@ -527,8 +529,10 @@ function parseFormCSV(csvText) {
     const bonusCol    = headers.find(h => /^bonus/i.test(h.trim()));
     const byPlayer = {};
     data.forEach(row => {
+        const primaryName = teamNameCol && row[teamNameCol]?.trim();
         const player = (
-            (teamNameCol && row[teamNameCol]?.trim()) ||
+            (primaryName && !/^i'?m new$/i.test(primaryName) ? primaryName : null) ||
+            (nicknamCol  && row[nicknamCol]?.trim()) ||
             (fullNameCol && row[fullNameCol]?.trim()) ||
             (emailCol    && row[emailCol]?.trim()) || 'Unknown'
         );
