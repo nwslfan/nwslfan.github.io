@@ -986,11 +986,8 @@ function App() {
                 .then(text => text ? parseSchedule(text) : null)
                 .catch(() => null);
 
-            // One ESPN call covering all configured weeks' date range
-            const allDates = configured.flatMap(wk => {
-                const sw = embeddedSchedule.find(w => w.weekNum === wk.week);
-                return sw ? sw.matches.map(m => parseScheduleDate(m.date)) : [];
-            });
+            // One ESPN call covering the full embedded schedule date range
+            const allDates = embeddedSchedule.flatMap(sw => sw.matches.map(m => parseScheduleDate(m.date)));
             const espnPromise = allDates.length > 0
                 ? fetchEspnScores(new Date(Math.min(...allDates)), new Date(Math.max(...allDates))).catch(() => [])
                 : Promise.resolve([]);
@@ -1022,16 +1019,16 @@ function App() {
                 if (!ok) { errs.push(`Week ${wk.week}: ${error}`); return { ...wk, picks: [], results: {} }; }
                 const sw = liveSchedule.find(w => w.weekNum === wk.week);
                 const derivedResults = {};
-                if (sw) {
-                    const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
-                    matchCols.forEach(col => {
-                        const parts = col.split(/ vs /i);
-                        if (parts.length !== 2) return;
-                        const [h, a] = parts.map(s => s.trim());
-                        const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
-                        if (g?.winner) derivedResults[col] = g.winner;
-                    });
-                }
+                const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
+                matchCols.forEach(col => {
+                    const parts = col.split(/ vs /i);
+                    if (parts.length !== 2) return;
+                    const [h, a] = parts.map(s => s.trim());
+                    // Skip picks for games not in this week's schedule
+                    if (sw && !sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a))) return;
+                    const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
+                    if (g?.winner) derivedResults[col] = g.winner;
+                });
                 // Manual results in WEEKS config take precedence
                 return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
             });
