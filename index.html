@@ -490,6 +490,25 @@ function formatBroadcast(str) {
 }
 
 // Loose team name matching for schedule ↔ picks cross-reference
+async function fetchEspnScores(startDate, endDate) {
+    const fmt = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
+    const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/usa.nwsl/scoreboard?dates=${fmt(startDate)}-${fmt(endDate)}`;
+    const r = await fetch(url);
+    if (!r.ok) throw new Error(`ESPN ${r.status}`);
+    const data = await r.json();
+    return (data.events || []).map(event => {
+        const comp = event.competitions[0];
+        const home = comp.competitors.find(c => c.homeAway === 'home');
+        const away = comp.competitors.find(c => c.homeAway === 'away');
+        const finished = event.status.type.completed;
+        const winner = finished
+            ? (home?.winner ? home.team.displayName : away?.winner ? away.team.displayName : 'Draw')
+            : null;
+        const score = finished ? `${home?.score}-${away?.score}` : null;
+        return { home: home?.team.displayName, away: away?.team.displayName, winner, score };
+    });
+}
+
 function normTeam(s) {
     return s.toLowerCase()
         .replace(/\s*fc\s*$/i, '')
@@ -881,7 +900,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             <div className="mb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="text-white text-sm font-medium">
-                                        {schedMatch?.score ? formatScore(schedMatch.score) : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
+                                        {schedMatch?.score ? (() => { const [hs,as] = schedMatch.score.split('-'); return <>{formatTeamName(schedMatch.home)} <span className="text-pink-400">{hs} - {as}</span> {formatTeamName(schedMatch.away)}</>; })() : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
                                     </div>
                                 </div>
                                 {!result && <div className="text-white/70 text-xs mt-0.5">Pending</div>}
@@ -972,18 +991,30 @@ function App() {
                     const r = await fetch(wk.picksUrl);
                     if (!r.ok) throw new Error(`HTTP ${r.status}`);
                     const picks = parseFormCSV(await r.text());
-                    // Derive results from schedule winners
+                    // Derive results from ESPN
                     const sw = liveSchedule.find(w => w.weekNum === wk.week);
                     const derivedResults = {};
                     if (sw && picks.length > 0) {
-                        const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
-                        matchCols.forEach(col => {
-                            const parts = col.split(/ vs /i);
-                            if (parts.length !== 2) return;
-                            const [h, a] = parts.map(s => s.trim());
-                            const m = sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
-                            if (m?.winner) derivedResults[col] = m.winner;
-                        });
+                        try {
+                            const dates = sw.matches.map(m => parseScheduleDate(m.date));
+                            const espnGames = await fetchEspnScores(
+                                new Date(Math.min(...dates)),
+                                new Date(Math.max(...dates))
+                            );
+                            // Merge ESPN scores into schedule for display
+                            sw.matches.forEach(m => {
+                                const g = espnGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
+                                if (g) { m.winner = g.winner || ''; m.score = g.score || ''; }
+                            });
+                            const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
+                            matchCols.forEach(col => {
+                                const parts = col.split(/ vs /i);
+                                if (parts.length !== 2) return;
+                                const [h, a] = parts.map(s => s.trim());
+                                const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
+                                if (g?.winner) derivedResults[col] = g.winner;
+                            });
+                        } catch (e) { /* ESPN unavailable */ }
                     }
                     // Manual results in WEEKS config take precedence
                     return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
@@ -993,6 +1024,7 @@ function App() {
                 }
             }));
             setErrors(errs);
+            setScheduleWeeks([...liveSchedule]);
             setPicks(loaded);
             setLoading(false);
         }
