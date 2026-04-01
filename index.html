@@ -637,7 +637,15 @@ function computeAll(weekData) {
         const scorePct = totalPicks > 0 ? Math.round((totalCorrect + totalUnderdogBonus) / totalPicks * 1000) / 10 : 0;
         const weeklyWins = weeks.filter(w => fullyScored.has(w) && weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
-        return { player, totalCorrect, totalUnderdogBonus, totalPicks, scorePct, weeklyWins, bonusWins };
+        const bonusDiffWeeks = weeks.filter(w =>
+            weekScores[w]?._meta?.bonusAnswer !== null &&
+            weekScores[w]?.[player]?.bonusGuess !== null
+        );
+        const bonusDiffTotal = bonusDiffWeeks.reduce((s, w) =>
+            s + Math.abs(weekScores[w][player].bonusGuess - weekScores[w]._meta.bonusAnswer), 0
+        );
+        const avgBonusDiff = bonusDiffWeeks.length > 0 ? bonusDiffTotal / bonusDiffWeeks.length : null;
+        return { player, totalCorrect, totalUnderdogBonus, totalPicks, scorePct, weeklyWins, bonusWins, avgBonusDiff, bonusDiffWeeks: bonusDiffWeeks.length };
     });
     standings.sort((a,b) => {
         if (b.scorePct !== a.scorePct) return b.scorePct - a.scorePct;
@@ -699,6 +707,7 @@ function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
                                 <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                                     <span className="text-white font-medium text-sm truncate">{s.player}</span>
                                     {s.weeklyWins > 0 && <span className="text-amber-400 text-xs">🏆 ×{s.weeklyWins}</span>}
+                                    {s.bonusWins > 0 && <span className="text-amber-300 text-xs">★ ×{s.bonusWins}</span>}
                                 </div>
                                 <div className="bg-white/10 rounded-full overflow-hidden" style={{height:5}}>
                                     <div className="leader-bar bg-pink-500" style={{width:`${pct}%`}} />
@@ -1040,8 +1049,21 @@ function App() {
                     const g = allGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
                     if (g?.winner) derivedResults[col] = g.winner;
                 });
+                // Compute bonus answer (total goals) from game scores if not manually set
+                const weekMatches = sw?.matches || [];
+                const weekGames = weekMatches
+                    .map(m => allGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away)))
+                    .filter(Boolean);
+                const allComplete = weekGames.length > 0 && weekGames.length === weekMatches.length && weekGames.every(g => g.score);
+                const computedBonus = allComplete
+                    ? weekGames.reduce((sum, g) => {
+                        const [h, a] = g.score.split('-').map(Number);
+                        return sum + (isNaN(h) || isNaN(a) ? 0 : h + a);
+                      }, 0)
+                    : null;
+                const bonusAnswer = (wk.bonusAnswer !== null && wk.bonusAnswer !== undefined) ? wk.bonusAnswer : computedBonus;
                 // Manual results in WEEKS config take precedence
-                return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
+                return { ...wk, picks, results: { ...derivedResults, ...wk.results }, bonusAnswer };
             });
 
             setErrors(errs);
