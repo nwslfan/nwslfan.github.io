@@ -971,13 +971,6 @@ function App() {
 
     useEffect(() => {
         async function load() {
-            // Always try to fetch the schedule
-            let liveSchedule = parseSchedule(SCHEDULE_CSV);
-            try {
-                const r = await fetch(SCHEDULE_URL);
-                if (r.ok) { liveSchedule = parseSchedule(await r.text()); setScheduleWeeks(liveSchedule); }
-            } catch (e) { /* schedule is optional display data */ }
-
             const configured = WEEKS.filter(w => w.picksUrl && !w.hidden);
             if (configured.length === 0) {
                 setPicks(DEMO_WEEKS);
@@ -986,44 +979,63 @@ function App() {
                 return;
             }
 
+            // Use embedded schedule immediately for date ranges; fetch live schedule in parallel
+            const embeddedSchedule = parseSchedule(SCHEDULE_CSV);
+            const schedulePromise = fetch(SCHEDULE_URL)
+                .then(r => r.ok ? r.text() : null)
+                .then(text => text ? parseSchedule(text) : null)
+                .catch(() => null);
+
+            // One ESPN call covering all configured weeks' date range
+            const allDates = configured.flatMap(wk => {
+                const sw = embeddedSchedule.find(w => w.weekNum === wk.week);
+                return sw ? sw.matches.map(m => parseScheduleDate(m.date)) : [];
+            });
+            const espnPromise = allDates.length > 0
+                ? fetchEspnScores(new Date(Math.min(...allDates)), new Date(Math.max(...allDates))).catch(() => [])
+                : Promise.resolve([]);
+
+            // All picks + schedule + ESPN in parallel
+            const picksPromises = configured.map(wk =>
+                fetch(wk.picksUrl)
+                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
+                    .then(text => ({ wk, picks: parseFormCSV(text), ok: true }))
+                    .catch(e => ({ wk, picks: [], ok: false, error: e.message }))
+            );
+
+            const [liveScheduleResult, espnGames, ...picksResults] = await Promise.all([
+                schedulePromise, espnPromise, ...picksPromises
+            ]);
+
+            const liveSchedule = liveScheduleResult || embeddedSchedule;
+
+            // Merge ESPN scores into schedule for display
+            liveSchedule.forEach(sw => {
+                sw.matches.forEach(m => {
+                    const g = espnGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
+                    if (g) { m.winner = g.winner || ''; m.score = g.score || ''; }
+                });
+            });
+
             const errs = [];
-            const loaded = await Promise.all(configured.map(async wk => {
-                try {
-                    const r = await fetch(wk.picksUrl);
-                    if (!r.ok) throw new Error(`HTTP ${r.status}`);
-                    const picks = parseFormCSV(await r.text());
-                    // Derive results from ESPN
-                    const sw = liveSchedule.find(w => w.weekNum === wk.week);
-                    const derivedResults = {};
-                    if (sw && picks.length > 0) {
-                        try {
-                            const dates = sw.matches.map(m => parseScheduleDate(m.date));
-                            const espnGames = await fetchEspnScores(
-                                new Date(Math.min(...dates)),
-                                new Date(Math.max(...dates))
-                            );
-                            // Merge ESPN scores into schedule for display
-                            sw.matches.forEach(m => {
-                                const g = espnGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
-                                if (g) { m.winner = g.winner || ''; m.score = g.score || ''; }
-                            });
-                            const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
-                            matchCols.forEach(col => {
-                                const parts = col.split(/ vs /i);
-                                if (parts.length !== 2) return;
-                                const [h, a] = parts.map(s => s.trim());
-                                const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
-                                if (g?.winner) derivedResults[col] = g.winner;
-                            });
-                        } catch (e) { /* ESPN unavailable */ }
-                    }
-                    // Manual results in WEEKS config take precedence
-                    return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
-                } catch (e) {
-                    errs.push(`Week ${wk.week}: ${e.message}`);
-                    return { ...wk, picks: [] };
+            const loaded = picksResults.map(({ wk, picks, ok, error }) => {
+                if (!ok) { errs.push(`Week ${wk.week}: ${error}`); return { ...wk, picks: [], results: {} }; }
+                const sw = liveSchedule.find(w => w.weekNum === wk.week);
+                const derivedResults = {};
+                if (sw) {
+                    const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
+                    matchCols.forEach(col => {
+                        const parts = col.split(/ vs /i);
+                        if (parts.length !== 2) return;
+                        const [h, a] = parts.map(s => s.trim());
+                        const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
+                        if (g?.winner) derivedResults[col] = g.winner;
+                    });
                 }
-            }));
+                // Manual results in WEEKS config take precedence
+                return { ...wk, picks, results: { ...derivedResults, ...wk.results } };
+            });
+
             setErrors(errs);
             setScheduleWeeks([...liveSchedule]);
             setPicks(loaded);
