@@ -638,8 +638,8 @@ function computeAll(weekData) {
         const weeklyWins = weeks.filter(w => fullyScored.has(w) && weeklyWinners[w]?.includes(player)).length;
         const bonusWins  = weeks.filter(w => weekScores[w]?.[player]?.bonusWinner).length;
         const bonusDiffWeeks = weeks.filter(w =>
-            weekScores[w]?._meta?.bonusAnswer !== null &&
-            weekScores[w]?.[player]?.bonusGuess !== null
+            weekScores[w]?._meta?.bonusAnswer != null &&
+            weekScores[w]?.[player]?.bonusGuess != null
         );
         const bonusDiffTotal = bonusDiffWeeks.reduce((s, w) =>
             s + Math.abs(weekScores[w][player].bonusGuess - weekScores[w]._meta.bonusAnswer), 0
