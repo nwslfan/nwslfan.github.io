@@ -986,13 +986,15 @@ function App() {
                 .then(text => text ? parseSchedule(text) : null)
                 .catch(() => null);
 
-            // One ESPN call covering the full embedded schedule date range
-            const allDates = embeddedSchedule.flatMap(sw => sw.matches.map(m => parseScheduleDate(m.date)));
-            const espnPromise = allDates.length > 0
-                ? fetchEspnScores(new Date(Math.min(...allDates)), new Date(Math.max(...allDates))).catch(() => [])
-                : Promise.resolve([]);
+            // Fetch cached historical results + ESPN for last 7 days only
+            const cachedPromise = fetch('/results.json')
+                .then(r => r.ok ? r.json() : null)
+                .catch(() => null);
+            const recentStart = new Date();
+            recentStart.setDate(recentStart.getDate() - 7);
+            const espnPromise = fetchEspnScores(recentStart, new Date()).catch(() => []);
 
-            // All picks + schedule + ESPN in parallel
+            // All picks + schedule + cached + ESPN in parallel
             const picksPromises = configured.map(wk =>
                 fetch(wk.picksUrl)
                     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
@@ -1000,16 +1002,25 @@ function App() {
                     .catch(e => ({ wk, picks: [], ok: false, error: e.message }))
             );
 
-            const [liveScheduleResult, espnGames, ...picksResults] = await Promise.all([
-                schedulePromise, espnPromise, ...picksPromises
+            const [liveScheduleResult, cached, espnGames, ...picksResults] = await Promise.all([
+                schedulePromise, cachedPromise, espnPromise, ...picksPromises
             ]);
 
             const liveSchedule = liveScheduleResult || embeddedSchedule;
 
-            // Merge ESPN scores into schedule for display
+            // Combine: ESPN (fresher) takes precedence over cached for any overlap
+            const espnKey = g => `${normTeam(g.home)}|${normTeam(g.away)}`;
+            const espnKeys = new Set(espnGames.map(espnKey));
+            const allGames = [
+                ...espnGames,
+                ...(cached?.games || [])
+                    .filter(g => !espnKeys.has(`${normTeam(g.home)}|${normTeam(g.away)}`))
+            ];
+
+            // Merge scores into schedule for display
             liveSchedule.forEach(sw => {
                 sw.matches.forEach(m => {
-                    const g = espnGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
+                    const g = allGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
                     if (g) { m.winner = g.winner || ''; m.score = g.score || ''; }
                 });
             });
@@ -1026,7 +1037,7 @@ function App() {
                     const [h, a] = parts.map(s => s.trim());
                     // Skip picks for games not in this week's schedule
                     if (sw && !sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a))) return;
-                    const g = espnGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
+                    const g = allGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
                     if (g?.winner) derivedResults[col] = g.winner;
                 });
                 // Manual results in WEEKS config take precedence

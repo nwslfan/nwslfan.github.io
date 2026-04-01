@@ -1,0 +1,208 @@
+{
+  "updatedAt": "2026-04-01T20:30:12Z",
+  "games": [
+    {
+      "date": "2026-03-14",
+      "home": "Washington Spirit",
+      "away": "Portland Thorns FC",
+      "winner": "Portland Thorns FC",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-03-14",
+      "home": "Boston Legacy FC",
+      "away": "Gotham FC",
+      "winner": "Gotham FC",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-03-14",
+      "home": "Kansas City Current",
+      "away": "Utah Royals",
+      "winner": "Kansas City Current",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-14",
+      "home": "Bay FC",
+      "away": "Denver Summit FC",
+      "winner": "Bay FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-14",
+      "home": "North Carolina Courage",
+      "away": "Racing Louisville FC",
+      "winner": "North Carolina Courage",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-15",
+      "home": "San Diego Wave FC",
+      "away": "Houston Dash",
+      "winner": "Houston Dash",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-03-15",
+      "home": "Orlando Pride",
+      "away": "Seattle Reign FC",
+      "winner": "Seattle Reign FC",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-03-15",
+      "home": "Angel City FC",
+      "away": "Chicago Stars FC",
+      "winner": "Angel City FC",
+      "score": "4-0"
+    },
+    {
+      "date": "2026-03-21",
+      "home": "Orlando Pride",
+      "away": "Denver Summit FC",
+      "winner": "Draw",
+      "score": "1-1"
+    },
+    {
+      "date": "2026-03-21",
+      "home": "Racing Louisville FC",
+      "away": "Washington Spirit",
+      "winner": "Draw",
+      "score": "2-2"
+    },
+    {
+      "date": "2026-03-21",
+      "home": "Portland Thorns FC",
+      "away": "Seattle Reign FC",
+      "winner": "Portland Thorns FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-03-21",
+      "home": "Houston Dash",
+      "away": "Boston Legacy FC",
+      "winner": "Houston Dash",
+      "score": "3-0"
+    },
+    {
+      "date": "2026-03-21",
+      "home": "Gotham FC",
+      "away": "North Carolina Courage",
+      "winner": "Draw",
+      "score": "0-0"
+    },
+    {
+      "date": "2026-03-22",
+      "home": "Bay FC",
+      "away": "Angel City FC",
+      "winner": "Angel City FC",
+      "score": "1-3"
+    },
+    {
+      "date": "2026-03-22",
+      "home": "Chicago Stars FC",
+      "away": "Kansas City Current",
+      "winner": "Chicago Stars FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-22",
+      "home": "Utah Royals",
+      "away": "San Diego Wave FC",
+      "winner": "San Diego Wave FC",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-03-25",
+      "home": "Gotham FC",
+      "away": "Denver Summit FC",
+      "winner": "Denver Summit FC",
+      "score": "0-2"
+    },
+    {
+      "date": "2026-03-25",
+      "home": "Washington Spirit",
+      "away": "Utah Royals",
+      "winner": "Draw",
+      "score": "1-1"
+    },
+    {
+      "date": "2026-03-26",
+      "home": "Chicago Stars FC",
+      "away": "Orlando Pride",
+      "winner": "Orlando Pride",
+      "score": "0-3"
+    },
+    {
+      "date": "2026-03-26",
+      "home": "Seattle Reign FC",
+      "away": "Kansas City Current",
+      "winner": "Seattle Reign FC",
+      "score": "3-0"
+    },
+    {
+      "date": "2026-03-26",
+      "home": "San Diego Wave FC",
+      "away": "Portland Thorns FC",
+      "winner": "San Diego Wave FC",
+      "score": "3-1"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "Angel City FC",
+      "away": "Houston Dash",
+      "winner": "Angel City FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "Boston Legacy FC",
+      "away": "Utah Royals",
+      "winner": "Utah Royals",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "Denver Summit FC",
+      "away": "Washington Spirit",
+      "winner": "Draw",
+      "score": "0-0"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "Portland Thorns FC",
+      "away": "Kansas City Current",
+      "winner": "Portland Thorns FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "Seattle Reign FC",
+      "away": "Racing Louisville FC",
+      "winner": "Seattle Reign FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-03-28",
+      "home": "North Carolina Courage",
+      "away": "Bay FC",
+      "winner": "Bay FC",
+      "score": "1-3"
+    },
+    {
+      "date": "2026-03-29",
+      "home": "San Diego Wave FC",
+      "away": "Chicago Stars FC",
+      "winner": "San Diego Wave FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-03-29",
+      "home": "Gotham FC",
+      "away": "Orlando Pride",
+      "winner": "Draw",
+      "score": "0-0"
+    }
+  ]
+}
