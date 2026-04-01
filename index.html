@@ -687,6 +687,7 @@ function PrizePool({ playerCount }) {
 function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
     const [expanded, setExpanded] = useState(null);
     const maxPct = standings.length > 0 ? standings[0].scorePct || 1 : 1;
+    const maxCorrect = standings.length > 0 ? Math.max(...standings.map(s => s.totalCorrect)) : 0;
     return (
         <div className="card mb-5 overflow-hidden">
             <div className="px-5 pt-5 pb-2 flex items-center justify-between">
@@ -706,8 +707,9 @@ function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
                             <div className="flex-1 min-w-0">
                                 <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
                                     <span className="text-white font-medium text-sm truncate">{s.player}</span>
-                                    {s.weeklyWins > 0 && <span className="text-amber-400 text-xs">🏆 ×{s.weeklyWins}</span>}
-                                    {s.bonusWins > 0 && <span className="text-amber-300 text-xs">★ ×{s.bonusWins}</span>}
+                                    {maxCorrect > 0 && s.totalCorrect === maxCorrect && <span className="text-green-400 text-xs" title="Tiebreaker 1: most correct picks">✓ ×{s.totalCorrect}</span>}
+                                    {s.weeklyWins > 0 && <span className="text-amber-400 text-xs" title="Tiebreaker 2: weekly wins">🏆 ×{s.weeklyWins}</span>}
+                                    {s.bonusWins > 0 && <span className="text-amber-300 text-xs" title="Tiebreaker 3: bonus questions closest">★ ×{s.bonusWins}</span>}
                                 </div>
                                 <div className="bg-white/10 rounded-full overflow-hidden" style={{height:5}}>
                                     <div className="leader-bar bg-pink-500" style={{width:`${pct}%`}} />
@@ -886,7 +888,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     </div>
                 </div>
                 {allIn && weekWinners.length > 0 && (
-                    <div className="text-amber-400 text-xs text-right">
+                    <div className="text-amber-400 text-xs text-right" title="Weekly winner">
                         🏆 {weekWinners.length===1 ? weekWinners[0] : `${weekWinners.length}-way tie`}
                     </div>
                 )}
@@ -924,12 +926,12 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
                                     return (
                                         <div key={outcome} className="flex items-center gap-2.5">
-                                            <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-pink-400 font-semibold':'text-white'}`}>{formatTeamName(outcome)}</div>
+                                            <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-pink-400 font-semibold':'text-white'}`} title={isResult?'Winner':undefined}>{formatTeamName(outcome)}</div>
                                             <div className="flex-1 bg-white/10 rounded-full overflow-hidden" style={{height:4}}>
                                                 <div className={`pick-bar ${isResult?'bg-pink-500':'bg-white'}`} style={{width:`${pct*100}%`}} />
                                             </div>
                                             <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
-                                            <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>{isUnderdog && <span className="bonus-pill" title="bonus">★</span>}</span>
+                                            <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>{isUnderdog && <span className="bonus-pill" title="Underdog bonus">★</span>}</span>
                                         </div>
                                     );
                                 })}
