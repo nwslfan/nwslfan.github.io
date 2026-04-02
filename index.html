@@ -322,7 +322,7 @@ const WEEKS = [
 
 // Set this to the deployed Apps Script web app URL to enable the inline picks form.
 // Leave empty to fall back to Google Form links.
-const PICKS_SCRIPT_URL = '';
+const PICKS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycby-3W0VEIf-V8WS3ogzy-YS3Aj03Mli9SQRMVw0pI4MD7qiQckyS_tKutBdBwjORgi1/exec';
 
 const formIsOpen = w => w.formClosesAt && new Date() < new Date(w.formClosesAt);
 
@@ -1030,7 +1030,14 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
         <div className="card p-5 mb-5">
             <h2 className="text-white font-semibold mb-1">Week {weekNum} — Make Your Picks</h2>
             {sw && <div className="text-white/75 text-sm mb-0.5">{dateRange(sw)}</div>}
-            {deadlineStr && <div className="text-white/60 text-xs mb-5">Submit by {deadlineStr}</div>}
+            {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
+
+            {submitters?.length > 0 && (
+                <div className="mb-5 pb-4 border-b border-white/10">
+                    <div className="text-white/60 text-xs mb-1">{submitters.length} submitted so far:</div>
+                    {submitters.map(n => <div key={n} className="text-white/85 text-sm">{n}</div>)}
+                </div>
+            )}
 
             <div className="mb-5">
                 <div className="text-white/85 text-xs uppercase tracking-wider mb-2">Who are you?</div>
@@ -1088,12 +1095,6 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                 {status === 'submitting' ? 'Submitting...' : 'Submit Picks'}
             </button>
 
-            {submitters?.length > 0 && (
-                <div className="mt-4 pt-4 border-t border-white/10">
-                    <div className="text-white/60 text-xs mb-1">{submitters.length} submitted so far:</div>
-                    {submitters.map(n => <div key={n} className="text-white/85 text-sm">{n}</div>)}
-                </div>
-            )}
         </div>
     );
 }
@@ -1111,10 +1112,7 @@ function App() {
             const embeddedScheduleForLoad = parseSchedule(SCHEDULE_CSV);
             const configured = WEEKS.filter(w => !w.hidden && (
                 w.picksUrl ||
-                (PICKS_SCRIPT_URL && embeddedScheduleForLoad.some(sw =>
-                    sw.weekNum === w.week &&
-                    sw.matches.some(m => parseScheduleDate(m.date) <= new Date())
-                ))
+                (PICKS_SCRIPT_URL && embeddedScheduleForLoad.some(sw => sw.weekNum === w.week))
             ));
             if (configured.length === 0) {
                 setPicks(DEMO_WEEKS);
@@ -1251,7 +1249,7 @@ function App() {
                 {computed && <PrizePool playerCount={computed.standings.length} />}
 
                 <div className="card p-5 mb-5 text-white/85 text-sm leading-relaxed">
-                    An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players.
+                    An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players. Submit your <strong className="text-white">one time $5 entry fee</strong> to Rachel-Syko via Venmo by April 30th.
                 </div>
 
                 {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} />}
@@ -1288,10 +1286,11 @@ function App() {
                                 const deadline = sw ? getPicksDeadline(sw) : null;
                                 const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
 
-                                // Form is open if: explicit formClosesAt not yet passed, OR script-based week before deadline
-                                const isFormOpen = weekDef?.formClosesAt
-                                    ? new Date() < new Date(weekDef.formClosesAt)
-                                    : PICKS_SCRIPT_URL && deadline ? new Date() < deadline : false;
+                                // Weeks with picksUrl use formClosesAt only (or are always closed if unset).
+                                // Script-based weeks (no picksUrl) are open until the schedule deadline.
+                                const isFormOpen = weekDef?.picksUrl
+                                    ? (weekDef.formClosesAt ? new Date() < new Date(weekDef.formClosesAt) : false)
+                                    : (PICKS_SCRIPT_URL && deadline ? new Date() < deadline : false);
 
                                 if (weekDef && !isFormOpen) return (
                                     <WeekSection weekNum={displayWeek} weekDef={weekDef}
@@ -1303,7 +1302,7 @@ function App() {
                                 // Inline picks form (when Apps Script URL is configured)
                                 if (PICKS_SCRIPT_URL && sw) {
                                     const knownPlayers = computed?.standings?.map(s => s.player) || [];
-                                    return <PicksForm weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
+                                    return <PicksForm key={displayWeek} weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
                                         submitters={submitters} deadlineStr={deadlineStr} />;
                                 }
 
