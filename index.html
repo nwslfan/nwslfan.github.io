@@ -888,7 +888,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     <h2 className="text-white font-semibold">Week {weekNum} — Picks</h2>
                     <div className="text-white/75 text-xs mt-0.5">
                         {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Partial results'}
-                        {schedWeek && <span className="ml-2">{dateRange(schedWeek)}</span>}
+                        {schedWeek && <span className="ml-1">{dateRange(schedWeek)}</span>}
                     </div>
                 </div>
                 {allIn && weekWinners.length > 0 && (
@@ -1045,8 +1045,8 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                     <select value={player} onChange={e => { if (e.target.value === '__new__') { setIsNew(true); setPlayer(''); } else setPlayer(e.target.value); }}
                         className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20">
                         <option value="">Select your team...</option>
-                        {knownPlayers.map(p => <option key={p} value={p}>{p}</option>)}
                         <option value="__new__">I'm new here →</option>
+                        {knownPlayers.map(p => <option key={p} value={p}>{p}</option>)}
                     </select>
                 ) : (
                     <div className="space-y-2">
@@ -1301,7 +1301,7 @@ function App() {
 
                                 // Inline picks form (when Apps Script URL is configured)
                                 if (PICKS_SCRIPT_URL && sw) {
-                                    const knownPlayers = computed?.standings?.map(s => s.player) || [];
+                                    const knownPlayers = (computed?.standings?.map(s => s.player) || []).slice().sort((a, b) => a.localeCompare(b));
                                     return <PicksForm key={displayWeek} weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
                                         submitters={submitters} deadlineStr={deadlineStr} />;
                                 }
