@@ -320,6 +320,10 @@ const WEEKS = [
     { week: 5, picksUrl: '', formUrl: '', results: {}, bonusAnswer: null },
 ];
 
+// Set this to the deployed Apps Script web app URL to enable the inline picks form.
+// Leave empty to fall back to Google Form links.
+const PICKS_SCRIPT_URL = '';
+
 const formIsOpen = w => w.formClosesAt && new Date() < new Date(w.formClosesAt);
 
 // ================================================================
@@ -972,6 +976,128 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
 // ================================================================
 // MAIN APP
 // ================================================================
+function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
+    const [isNew, setIsNew] = useState(false);
+    const [player, setPlayer] = useState('');
+    const [nickname, setNickname] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [email, setEmail] = useState('');
+    const [gamePicks, setGamePicks] = useState({});
+    const [bonus, setBonus] = useState('');
+    const [status, setStatus] = useState('idle');
+    const [errorMsg, setErrorMsg] = useState('');
+
+    const games = sw?.matches || [];
+    const gameCols = games.map(m => `${m.home} vs ${m.away}`);
+    const allPicked = gameCols.length > 0 && gameCols.every(col => gamePicks[col]);
+    const playerName = isNew ? (nickname || fullName || email) : player;
+    const canSubmit = playerName && allPicked && bonus !== '' && status !== 'submitting';
+
+    async function handleSubmit() {
+        setStatus('submitting');
+        try {
+            const res = await fetch(PICKS_SCRIPT_URL, {
+                method: 'POST',
+                body: JSON.stringify({
+                    action: 'submit', week: weekNum,
+                    teamName: isNew ? "I'm new" : player,
+                    nickname: isNew ? nickname : '',
+                    fullName: isNew ? fullName : '',
+                    email: isNew ? email : '',
+                    picks: gamePicks,
+                    bonus: parseInt(bonus) || null,
+                }),
+            });
+            const json = await res.json();
+            if (json.ok) { setStatus('success'); }
+            else { setStatus('error'); setErrorMsg(json.error || 'Submission failed'); }
+        } catch (e) { setStatus('error'); setErrorMsg(e.message); }
+    }
+
+    if (status === 'success') return (
+        <div className="card p-5 text-center mb-5">
+            <div className="text-green-400 text-2xl mb-2">✓</div>
+            <div className="text-white font-semibold">Picks submitted!</div>
+            <div className="text-white/60 text-sm mt-1">See you after the games.</div>
+            {submitters?.length > 0 && <div className="mt-4 text-left">
+                <div className="text-white/60 text-xs mb-1">{submitters.length} submitted so far:</div>
+                {submitters.map(n => <div key={n} className="text-white/85 text-sm">{n}</div>)}
+            </div>}
+        </div>
+    );
+
+    return (
+        <div className="card p-5 mb-5">
+            <h2 className="text-white font-semibold mb-1">Week {weekNum} — Make Your Picks</h2>
+            {sw && <div className="text-white/75 text-sm mb-0.5">{dateRange(sw)}</div>}
+            {deadlineStr && <div className="text-white/60 text-xs mb-5">Submit by {deadlineStr}</div>}
+
+            <div className="mb-5">
+                <div className="text-white/85 text-xs uppercase tracking-wider mb-2">Who are you?</div>
+                {!isNew ? (
+                    <select value={player} onChange={e => { if (e.target.value === '__new__') { setIsNew(true); setPlayer(''); } else setPlayer(e.target.value); }}
+                        className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20">
+                        <option value="">Select your team...</option>
+                        {knownPlayers.map(p => <option key={p} value={p}>{p}</option>)}
+                        <option value="__new__">I'm new here →</option>
+                    </select>
+                ) : (
+                    <div className="space-y-2">
+                        <input value={nickname} onChange={e => setNickname(e.target.value)} placeholder="Team nickname"
+                            className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 placeholder-white/40" />
+                        <input value={fullName} onChange={e => setFullName(e.target.value)} placeholder="Full name"
+                            className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 placeholder-white/40" />
+                        <input value={email} onChange={e => setEmail(e.target.value)} placeholder="Email" type="email"
+                            className="w-full bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 placeholder-white/40" />
+                        <button onClick={() => setIsNew(false)} className="text-white/50 text-xs hover:text-white/80">← Back to player list</button>
+                    </div>
+                )}
+            </div>
+
+            <div className="mb-5 space-y-3">
+                <div className="text-white/85 text-xs uppercase tracking-wider mb-2">Your picks</div>
+                {games.map(m => {
+                    const col = `${m.home} vs ${m.away}`;
+                    const picked = gamePicks[col];
+                    return (
+                        <div key={col}>
+                            <div className="text-white/60 text-xs mb-1.5">{formatTeamName(m.home)} vs {formatTeamName(m.away)}</div>
+                            <div className="flex gap-1.5">
+                                {[m.home, 'Draw', m.away].map(opt => (
+                                    <button key={opt} onClick={() => setGamePicks(prev => ({ ...prev, [col]: opt }))}
+                                        className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors ${picked === opt ? 'bg-pink-500 border-pink-500 text-white font-semibold' : 'bg-white/5 border-white/15 text-white/75 hover:bg-white/10'}`}>
+                                        {formatTeamName(opt)}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
+
+            <div className="mb-5">
+                <div className="text-white/85 text-xs uppercase tracking-wider mb-1">Bonus (tiebreaker)</div>
+                <div className="text-white/60 text-xs mb-2">How many total goals will be scored this week?</div>
+                <input value={bonus} onChange={e => setBonus(e.target.value)} type="number" min="0" placeholder="0"
+                    className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 w-24 placeholder-white/40" />
+            </div>
+
+            {status === 'error' && <div className="text-red-400 text-sm mb-3">{errorMsg}</div>}
+            <button onClick={handleSubmit} disabled={!canSubmit}
+                className={`w-full py-2.5 rounded-full text-sm font-semibold transition-colors ${canSubmit ? 'bg-pink-500 hover:bg-pink-400 text-white' : 'bg-white/10 text-white/40 cursor-not-allowed'}`}>
+                {status === 'submitting' ? 'Submitting...' : 'Submit Picks'}
+            </button>
+
+            {submitters?.length > 0 && (
+                <div className="mt-4 pt-4 border-t border-white/10">
+                    <div className="text-white/60 text-xs mb-1">{submitters.length} submitted so far:</div>
+                    {submitters.map(n => <div key={n} className="text-white/85 text-sm">{n}</div>)}
+                </div>
+            )}
+        </div>
+    );
+}
+
 function App() {
     const [picks, setPicks] = useState(null);
     const [scheduleWeeks, setScheduleWeeks] = useState(() => parseSchedule(SCHEDULE_CSV));
@@ -982,7 +1108,14 @@ function App() {
 
     useEffect(() => {
         async function load() {
-            const configured = WEEKS.filter(w => w.picksUrl && !w.hidden);
+            const embeddedScheduleForLoad = parseSchedule(SCHEDULE_CSV);
+            const configured = WEEKS.filter(w => !w.hidden && (
+                w.picksUrl ||
+                (PICKS_SCRIPT_URL && embeddedScheduleForLoad.some(sw =>
+                    sw.weekNum === w.week &&
+                    sw.matches.some(m => parseScheduleDate(m.date) <= new Date())
+                ))
+            ));
             if (configured.length === 0) {
                 setPicks(DEMO_WEEKS);
                 setUsingDemo(true);
@@ -1006,12 +1139,18 @@ function App() {
             const espnPromise = fetchEspnScores(recentStart, new Date()).catch(() => []);
 
             // All picks + schedule + cached + ESPN in parallel
-            const picksPromises = configured.map(wk =>
-                fetch(wk.picksUrl)
-                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
-                    .then(text => ({ wk, picks: parseFormCSV(text), ok: true }))
-                    .catch(e => ({ wk, picks: [], ok: false, error: e.message }))
-            );
+            const picksPromises = configured.map(wk => {
+                if (wk.picksUrl) {
+                    return fetch(wk.picksUrl)
+                        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
+                        .then(text => ({ wk, picks: parseFormCSV(text), ok: true }))
+                        .catch(e => ({ wk, picks: [], ok: false, error: e.message }));
+                }
+                return fetch(`${PICKS_SCRIPT_URL}?action=picks&week=${wk.week}`)
+                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+                    .then(picks => ({ wk, picks: Array.isArray(picks) ? picks : [], ok: true }))
+                    .catch(e => ({ wk, picks: [], ok: false, error: e.message }));
+            });
 
             const [liveScheduleResult, cached, espnGames, ...picksResults] = await Promise.all([
                 schedulePromise, cachedPromise, espnPromise, ...picksPromises
@@ -1145,15 +1284,31 @@ function App() {
                             </div>
                             {displayWeek!==null && (() => {
                                 const weekDef = picks?.find(w => w.week === displayWeek);
-                                if (weekDef && !formIsOpen(weekDef)) return (
+                                const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
+                                const deadline = sw ? getPicksDeadline(sw) : null;
+                                const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
+
+                                // Form is open if: explicit formClosesAt not yet passed, OR script-based week before deadline
+                                const isFormOpen = weekDef?.formClosesAt
+                                    ? new Date() < new Date(weekDef.formClosesAt)
+                                    : PICKS_SCRIPT_URL && deadline ? new Date() < deadline : false;
+
+                                if (weekDef && !isFormOpen) return (
                                     <WeekSection weekNum={displayWeek} weekDef={weekDef}
                                         weekScore={computed.weekScores[displayWeek]} scheduleWeeks={scheduleWeeks} />
                                 );
-                                const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
-                                const weekConfig = weekDef || WEEKS.find(w => w.week === displayWeek);
-                                const deadline = sw ? getPicksDeadline(sw) : null;
-                                const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
+
                                 const submitters = weekDef?.picks?.map(p => p.player);
+
+                                // Inline picks form (when Apps Script URL is configured)
+                                if (PICKS_SCRIPT_URL && sw) {
+                                    const knownPlayers = computed?.standings?.map(s => s.player) || [];
+                                    return <PicksForm weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
+                                        submitters={submitters} deadlineStr={deadlineStr} />;
+                                }
+
+                                // Fallback: link to Google Form
+                                const weekConfig = weekDef || WEEKS.find(w => w.week === displayWeek);
                                 return (
                                     <div className="card p-5 text-center mb-5">
                                         <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
