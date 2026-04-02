@@ -114,6 +114,9 @@ function submitPicks(body) {
 function upsertPlayer(ss, { teamName, nickname, fullName, email }) {
   if (!email && !fullName) return;
 
+  // Use nickname when teamName is "I'm new"
+  const displayName = (teamName && !/^i'?m new$/i.test(teamName)) ? teamName : (nickname || '');
+
   let sheet = ss.getSheetByName(PLAYERS_TAB);
   if (!sheet) {
     sheet = ss.insertSheet(PLAYERS_TAB);
@@ -128,15 +131,14 @@ function upsertPlayer(ss, { teamName, nickname, fullName, email }) {
     const names  = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).getValues().flat();
     for (let i = 0; i < emails.length; i++) {
       if (emails[i] === key || names[i] === key) {
-        // Update team name if changed
-        sheet.getRange(i + 2, 1).setValue(teamName || nickname || '');
+        sheet.getRange(i + 2, 1).setValue(displayName);
         found = true;
         break;
       }
     }
   }
   if (!found) {
-    sheet.appendRow([teamName || nickname || '', fullName || '', email || '', new Date().toISOString()]);
+    sheet.appendRow([displayName, fullName || '', email || '', new Date().toISOString()]);
   }
 }
 
