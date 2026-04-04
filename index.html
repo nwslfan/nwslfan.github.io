@@ -864,7 +864,7 @@ function ScheduleSection({ scheduleWeeks }) {
                             {matches.map((m, i) => (
                                 <a key={i} href={`https://www.google.com/search?q=${encodeURIComponent(`${m.home} vs ${m.away} ${m.date}`)}`} target="_blank" rel="noopener noreferrer"
                                     className={`px-5 py-2.5 flex items-center gap-3 cursor-pointer hover:bg-white/5 ${(!future && !today) || m.score ? 'opacity-40' : ''}`}>
-                                    <div className="text-white/75 text-xs w-24 flex-shrink-0">{formatLocalTime(m.date, m.time)}</div>
+                                    <div className="text-white/75 text-xs w-16 flex-shrink-0">{formatLocalTime(m.date, m.time)}</div>
                                     <div className="flex-1 min-w-0">
                                         <span className={`text-sm ${today||future?'text-white/80':'text-white/90'}`}>
                                             {(() => { const sg = m.score?.match(/(\d+)\s*[–-]\s*(\d+)/); return sg
