@@ -27,6 +27,8 @@
         .week-pill { padding: 4px 14px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; transition: all 0.15s; white-space: nowrap; }
         .pills-scroll { scrollbar-width: none; }
         .pills-scroll::-webkit-scrollbar { display: none; }
+        .no-scrollbar { scrollbar-width: none; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
         .week-pill-active { background: #e91e8c; color: white; }
         .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
         .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
@@ -720,7 +722,7 @@ function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
             <div className="px-5 pt-2 pb-2 flex items-center justify-between">
                 <div className="text-white/45 text-xs uppercase tracking-widest ml-auto">Accuracy</div>
             </div>
-            <div style={{maxHeight:'280px', overflowY:'auto'}}>
+            <div className="no-scrollbar" style={{maxHeight:'280px', overflowY:'auto'}}>
                 {standings.map((s, i) => {
                     const pct = (s.scorePct / maxPct) * 100;
                     const isOpen = expanded === s.player;
