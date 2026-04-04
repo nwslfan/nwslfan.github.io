@@ -667,7 +667,7 @@ function computeAll(weekData) {
 // COMPONENTS
 // ================================================================
 
-function CollapsibleCard({ title, children }) {
+function CollapsibleCard({ title, subtitle, children }) {
     const key = 'section_' + title;
     const [open, setOpen] = useState(() => {
         const saved = localStorage.getItem(key);
@@ -683,7 +683,7 @@ function CollapsibleCard({ title, children }) {
         <div className="card mb-5 overflow-hidden">
             <button onClick={toggle}
                 className="w-full px-5 py-3.5 flex items-center justify-between">
-                <span className="text-white/85 text-xs uppercase tracking-widest">{title}</span>
+                <span className="text-white/85 text-xs uppercase tracking-widest">{title}{subtitle && <span className="text-white/40 normal-case tracking-normal ml-1">({subtitle})</span>}</span>
                 <span className="text-white/40 text-xs">{open ? '▲' : '▼'}</span>
             </button>
             {open && <div className="border-t border-white/10">{children}</div>}
@@ -828,7 +828,6 @@ function ScheduleSection({ scheduleWeeks }) {
                 <div className="flex items-center justify-between mb-3">
                     <div>
                         <div className="text-white/75 text-xs mt-0.5">{dr}</div>
-                        <div className="text-white/40 text-xs mt-0.5">all times local</div>
                     </div>
                     <div className="text-pink-500 text-xs font-bold uppercase tracking-wider">Week {activeWeek.weekNum}</div>
                 </div>
@@ -1364,7 +1363,7 @@ function App() {
                     );
                 })()}</CollapsibleCard>}
 
-                {scheduleWeeks.length > 0 && <CollapsibleCard title="Schedule"><ScheduleSection scheduleWeeks={scheduleWeeks} /></CollapsibleCard>}
+                {scheduleWeeks.length > 0 && <CollapsibleCard title="Schedule" subtitle="all times local"><ScheduleSection scheduleWeeks={scheduleWeeks} /></CollapsibleCard>}
 
             </div>
         </div>
