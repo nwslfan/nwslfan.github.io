@@ -819,7 +819,10 @@ function ScheduleSection({ scheduleWeeks }) {
         byDay[m.date].matches.push(m);
     });
     const days = Object.values(byDay).sort((a,b) => parseScheduleDate(a.date) - parseScheduleDate(b.date));
-    days.forEach(d => d.matches.sort((a, b) => (pacificToDate(a.date, a.time) || 0) - (pacificToDate(b.date, b.time) || 0)));
+    days.forEach(d => d.matches.sort((a, b) => {
+        const timeDiff = (pacificToDate(a.date, a.time) || 0) - (pacificToDate(b.date, b.time) || 0);
+        return timeDiff !== 0 ? timeDiff : a.home.localeCompare(b.home);
+    }));
     const dr = dateRange(activeWeek);
 
     return (
