@@ -1054,8 +1054,10 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
 
     return (
         <div className="p-5">
-            <h2 className="text-white font-semibold mb-1">Week {weekNum} — Make Your Picks</h2>
-            {sw && <div className="text-white/75 text-sm mb-0.5">{dateRange(sw)}</div>}
+            <div className="flex items-baseline justify-between mb-0.5">
+                <h2 className="text-white font-semibold">Week {weekNum} — Make Your Picks</h2>
+                {sw && <span className="text-white/75 text-sm">{dateRange(sw)}</span>}
+            </div>
             {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
 
             {submitters?.length > 0 && (
