@@ -720,35 +720,37 @@ function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
             <div className="px-5 pt-2 pb-2 flex items-center justify-between">
                 <div className="text-white/45 text-xs uppercase tracking-widest ml-auto">Accuracy</div>
             </div>
-            {standings.map((s, i) => {
-                const pct = (s.scorePct / maxPct) * 100;
-                const isOpen = expanded === s.player;
-                const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
-                return (
-                    <div key={s.player}>
-                        <button onClick={() => setExpanded(isOpen ? null : s.player)}
-                            className="w-full px-5 py-3.5 flex items-center gap-3 border-t border-white/5 text-left"
-                            style={{ background: isOpen ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
-                            <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankClass}`}>{i+1}</div>
-                            <div className="flex-1 min-w-0">
-                                <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
-                                    <span className="text-white font-medium text-sm truncate">{s.player}</span>
-                                    {maxCorrect > 0 && s.totalCorrect === maxCorrect && <span className="text-green-400 text-xs" title="Tiebreaker 1: most correct picks">✓ ×{s.totalCorrect}</span>}
-                                    {s.weeklyWins > 0 && <span className="text-amber-400 text-xs" title="Tiebreaker 2: weekly wins">🏆 ×{s.weeklyWins}</span>}
-                                    {s.bonusWins > 0 && <span className="text-amber-300 text-xs" title="Tiebreaker 3: bonus questions closest">★ ×{s.bonusWins}</span>}
+            <div style={{maxHeight:'280px', overflowY:'auto'}}>
+                {standings.map((s, i) => {
+                    const pct = (s.scorePct / maxPct) * 100;
+                    const isOpen = expanded === s.player;
+                    const rankClass = i === 0 ? 'rank-1' : i === 1 ? 'rank-2' : i === 2 ? 'rank-3' : 'rank-other';
+                    return (
+                        <div key={s.player}>
+                            <button onClick={() => setExpanded(isOpen ? null : s.player)}
+                                className="w-full px-5 py-3.5 flex items-center gap-3 border-t border-white/5 text-left"
+                                style={{ background: isOpen ? 'rgba(255,255,255,0.03)' : 'transparent' }}>
+                                <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0 ${rankClass}`}>{i+1}</div>
+                                <div className="flex-1 min-w-0">
+                                    <div className="flex items-center gap-1.5 mb-1.5 flex-wrap">
+                                        <span className="text-white font-medium text-sm truncate">{s.player}</span>
+                                        {maxCorrect > 0 && s.totalCorrect === maxCorrect && <span className="text-green-400 text-xs" title="Tiebreaker 1: most correct picks">✓ ×{s.totalCorrect}</span>}
+                                        {s.weeklyWins > 0 && <span className="text-amber-400 text-xs" title="Tiebreaker 2: weekly wins">🏆 ×{s.weeklyWins}</span>}
+                                        {s.bonusWins > 0 && <span className="text-amber-300 text-xs" title="Tiebreaker 3: bonus questions closest">★ ×{s.bonusWins}</span>}
+                                    </div>
+                                    <div className="bg-white/10 rounded-full overflow-hidden" style={{height:5}}>
+                                        <div className="leader-bar bg-pink-500" style={{width:`${pct}%`}} />
+                                    </div>
                                 </div>
-                                <div className="bg-white/10 rounded-full overflow-hidden" style={{height:5}}>
-                                    <div className="leader-bar bg-pink-500" style={{width:`${pct}%`}} />
+                                <div className="text-right flex-shrink-0">
+                                    <div className="text-white font-bold text-xl leading-none">{s.scorePct}%</div>
                                 </div>
-                            </div>
-                            <div className="text-right flex-shrink-0">
-                                <div className="text-white font-bold text-xl leading-none">{s.scorePct}%</div>
-                            </div>
-                        </button>
-                        {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={scoredWeeks} />}
-                    </div>
-                );
-            })}
+                            </button>
+                            {isOpen && <PickHistory player={s.player} weekScores={weekScores} weeks={scoredWeeks} />}
+                        </div>
+                    );
+                })}
+            </div>
         </div>
     );
 }
