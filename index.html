@@ -665,13 +665,36 @@ function computeAll(weekData) {
 // COMPONENTS
 // ================================================================
 
+function CollapsibleCard({ title, children }) {
+    const key = 'section_' + title;
+    const [open, setOpen] = useState(() => {
+        const saved = localStorage.getItem(key);
+        return saved === null ? true : saved === 'true';
+    });
+    function toggle() {
+        setOpen(o => {
+            localStorage.setItem(key, String(!o));
+            return !o;
+        });
+    }
+    return (
+        <div className="card mb-5 overflow-hidden">
+            <button onClick={toggle}
+                className="w-full px-5 py-3.5 flex items-center justify-between">
+                <span className="text-white/85 text-xs uppercase tracking-widest">{title}</span>
+                <span className="text-white/40 text-xs">{open ? '▲' : '▼'}</span>
+            </button>
+            {open && <div className="border-t border-white/10">{children}</div>}
+        </div>
+    );
+}
+
 function PrizePool({ playerCount }) {
     const pool = playerCount * CONFIG.entryFee;
     const payouts = CONFIG.payoutPct.map(p => Math.floor(pool * p));
     const labels = ['1st','2nd','3rd'], colors = ['text-amber-400','text-slate-400','text-amber-700'];
     return (
-        <div className="card p-5 mb-5">
-            <div className="text-white/85 text-xs uppercase tracking-widest mb-4">Prize Pool</div>
+        <div className="p-5">
             <div className="flex gap-3">
                 <div className="flex-1 text-center border-r border-white/10 pr-3">
                     <div className="text-white text-2xl font-bold">${pool}</div>
@@ -693,10 +716,9 @@ function Leaderboard({ standings, weekScores, weeks, scoredWeeks }) {
     const maxPct = standings.length > 0 ? standings[0].scorePct || 1 : 1;
     const maxCorrect = standings.length > 0 ? Math.max(...standings.map(s => s.totalCorrect)) : 0;
     return (
-        <div className="card mb-5 overflow-hidden">
-            <div className="px-5 pt-5 pb-2 flex items-center justify-between">
-                <div className="text-white/85 text-xs uppercase tracking-widest">Standings</div>
-                <div className="text-white/45 text-xs uppercase tracking-widest">Accuracy</div>
+        <div>
+            <div className="px-5 pt-2 pb-2 flex items-center justify-between">
+                <div className="text-white/45 text-xs uppercase tracking-widest ml-auto">Accuracy</div>
             </div>
             {standings.map((s, i) => {
                 const pct = (s.scorePct / maxPct) * 100;
@@ -796,11 +818,10 @@ function ScheduleSection({ scheduleWeeks }) {
     const dr = dateRange(activeWeek);
 
     return (
-        <div className="card mb-5 overflow-hidden">
-            <div className="px-5 pt-5 pb-3">
+        <div>
+            <div className="px-5 pt-2 pb-3">
                 <div className="flex items-center justify-between mb-3">
                     <div>
-                        <h2 className="text-white font-semibold">Schedule</h2>
                         <div className="text-white/75 text-xs mt-0.5">{dr}</div>
                     </div>
                     <div className="text-pink-500 text-xs font-bold uppercase tracking-wider">Week {activeWeek.weekNum}</div>
@@ -882,8 +903,8 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
     const schedWeek = scheduleWeeks?.find(w => w.weekNum === weekNum);
 
     return (
-        <div className="card mb-5 overflow-hidden">
-            <div className="px-5 pt-5 pb-3 flex items-center justify-between">
+        <div>
+            <div className="px-5 pt-2 pb-3 flex items-center justify-between">
                 <div>
                     <h2 className="text-white font-semibold">Week {weekNum} — Picks</h2>
                     <div className="text-white/75 text-xs mt-0.5">
@@ -1015,7 +1036,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
     }
 
     if (status === 'success') return (
-        <div className="card p-5 text-center mb-5">
+        <div className="p-5 text-center">
             <div className="text-green-400 text-2xl mb-2">✓</div>
             <div className="text-white font-semibold">Picks submitted!</div>
             <div className="text-white/60 text-sm mt-1">See you after the games.</div>
@@ -1027,7 +1048,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
     );
 
     return (
-        <div className="card p-5 mb-5">
+        <div className="p-5">
             <h2 className="text-white font-semibold mb-1">Week {weekNum} — Make Your Picks</h2>
             {sw && <div className="text-white/75 text-sm mb-0.5">{dateRange(sw)}</div>}
             {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
@@ -1246,15 +1267,17 @@ function App() {
                 {usingDemo && <div className="demo-banner">Showing demo data. Add Google Sheet URLs to <code className="font-mono">WEEKS</code> in the config.</div>}
                 {errors.map((e,i) => <div key={i} className="error-banner">{e}</div>)}
 
-                {computed && <PrizePool playerCount={computed.standings.length} />}
+                {computed && <CollapsibleCard title="Prize Pool"><PrizePool playerCount={computed.standings.length} /></CollapsibleCard>}
 
-                <div className="card p-5 mb-5 text-white/85 text-sm leading-relaxed">
-                    An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players. Submit your <strong className="text-white">one time $5 entry fee</strong> to Rachel-Syko via Venmo by April 30th.
-                </div>
+                <CollapsibleCard title="How It Works">
+                    <div className="p-5 text-white/85 text-sm leading-relaxed">
+                        An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, fill out the Google Form and select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players. Submit your <strong className="text-white">one time $5 entry fee</strong> to Rachel-Syko via Venmo by April 30th.
+                    </div>
+                </CollapsibleCard>
 
-                {computed && <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} />}
+                {computed && <CollapsibleCard title="Standings"><Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} /></CollapsibleCard>}
 
-                {computed && weeks.length > 0 && (() => {
+                {computed && weeks.length > 0 && <CollapsibleCard title="Picks">{(() => {
                     const picksWeekNums = new Set(weeks);
                     const formOnlyWeeks = WEEKS.filter(w => w.formUrl && !w.hidden && !picksWeekNums.has(w.week) && (!w.picksUrl || formIsOpen(w)));
                     const formOnlyNums = new Set(formOnlyWeeks.map(w => w.week));
@@ -1270,7 +1293,7 @@ function App() {
                     ].sort((a, b) => a.weekNum - b.weekNum);
                     return (
                         <>
-                            <div className="pills-scroll flex gap-2 overflow-x-auto mb-6">
+                            <div className="pills-scroll flex gap-2 overflow-x-auto px-5 pt-4 mb-6">
                                 {allWeekPills.map(({ weekNum, hasPicks }) => {
                                     const isCurrent = weekNum === currentScheduleWeek(scheduleWeeks)?.weekNum;
                                     return (
@@ -1309,7 +1332,7 @@ function App() {
                                 // Fallback: link to Google Form
                                 const weekConfig = weekDef || WEEKS.find(w => w.week === displayWeek);
                                 return (
-                                    <div className="card p-5 text-center mb-5">
+                                    <div className="p-5 text-center">
                                         <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
                                         {sw && <div className="text-white/75 text-sm mb-1">{dateRange(sw)}</div>}
                                         {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
@@ -1333,9 +1356,9 @@ function App() {
                             })()}
                         </>
                     );
-                })()}
+                })()}</CollapsibleCard>}
 
-                {scheduleWeeks.length > 0 && <ScheduleSection scheduleWeeks={scheduleWeeks} />}
+                {scheduleWeeks.length > 0 && <CollapsibleCard title="Schedule"><ScheduleSection scheduleWeeks={scheduleWeeks} /></CollapsibleCard>}
 
             </div>
         </div>
