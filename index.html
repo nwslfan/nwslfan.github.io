@@ -1155,7 +1155,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
             {status === 'error' && <div className="text-red-400 text-sm mb-3">{errorMsg}</div>}
             <button onClick={handleSubmit} disabled={!canSubmit}
                 className={`w-full py-2.5 rounded-full text-sm font-semibold transition-colors ${canSubmit ? 'bg-pink-500 hover:bg-pink-400 text-white' : 'bg-white/10 text-white/40 cursor-not-allowed'}`}>
-                {status === 'submitting' ? 'Submitting...' : 'Submit Picks'}
+                {status === 'submitting' ? 'Submitting...' : saved ? 'Update Picks' : 'Submit Picks'}
             </button>
 
         </div>
