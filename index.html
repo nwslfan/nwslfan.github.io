@@ -1030,13 +1030,14 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
 // MAIN APP
 // ================================================================
 function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
+    const saved = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum] || null; } catch (_) { return null; } })();
     const [isNew, setIsNew] = useState(false);
-    const [player, setPlayer] = useState('');
+    const [player, setPlayer] = useState(saved?.player && knownPlayers.includes(saved.player) ? saved.player : '');
     const [nickname, setNickname] = useState('');
     const [fullName, setFullName] = useState('');
     const [email, setEmail] = useState('');
-    const [gamePicks, setGamePicks] = useState({});
-    const [bonus, setBonus] = useState('');
+    const [gamePicks, setGamePicks] = useState(saved?.picks || {});
+    const [bonus, setBonus] = useState(saved?.bonus != null ? String(saved.bonus) : '');
     const [status, setStatus] = useState('idle');
     const [errorMsg, setErrorMsg] = useState('');
 
