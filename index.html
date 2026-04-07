@@ -910,6 +910,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
     // Try to find matching schedule week (same week num)
     const schedWeek = scheduleWeeks?.find(w => w.weekNum === weekNum);
 
+    // Load this user's saved picks from localStorage
+    const myWeekPicks = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum]?.picks || null; } catch (_) { return null; } })();
+
     return (
         <div>
             <div className="px-5 pt-2 pb-3 flex items-center justify-between">
@@ -957,6 +960,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     const pct = total > 0 ? count/total : 0;
                                     const isResult = result !== undefined && normTeam(outcome)===result;
                                     const isUnderdog = isResult && pct < CONFIG.bonusThreshold;
+                                    const isMyPick = myWeekPicks && normTeam(myWeekPicks[match]) === normTeam(outcome);
                                     return (
                                         <div key={outcome} className="flex items-center gap-2.5">
                                             <div className={`text-xs w-32 truncate flex-shrink-0 ${isResult?'text-pink-400 font-semibold':'text-white'}`} title={isResult?'Winner':undefined}>{formatTeamName(outcome)}</div>
@@ -964,7 +968,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                                 <div className={`pick-bar ${isResult?'bg-pink-500':'bg-white'}`} style={{width:`${pct*100}%`}} />
                                             </div>
                                             <div className="text-white/80 text-xs w-9 text-right flex-shrink-0">{Math.round(pct*100)}%</div>
-                                            <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>{isUnderdog && <span className="bonus-pill" title="Underdog bonus">★</span>}</span>
+                                            <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>
+                                                {isUnderdog ? <span className="bonus-pill" title="Underdog bonus">★</span> : isMyPick ? <span className="text-sky-400 text-xs font-medium" title="Your pick">you</span> : null}
+                                            </span>
                                         </div>
                                     );
                                 })}
@@ -1038,7 +1044,14 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                 }),
             });
             const json = await res.json();
-            if (json.ok) { setStatus('success'); }
+            if (json.ok) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}');
+                    saved[weekNum] = { player: playerName, picks: gamePicks, bonus: parseInt(bonus) || null };
+                    localStorage.setItem('nwsl_my_picks', JSON.stringify(saved));
+                } catch (_) {}
+                setStatus('success');
+            }
             else { setStatus('error'); setErrorMsg(json.error || 'Submission failed'); }
         } catch (e) { setStatus('error'); setErrorMsg(e.message); }
     }
