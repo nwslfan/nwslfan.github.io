@@ -929,7 +929,28 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     </div>
                 )}
             </div>
-            {!hasResults && <div className="px-5 py-6 text-center text-white/60 text-sm">Picks are in — results pending</div>}
+            {!hasResults && (
+                myWeekPicks && Object.keys(myWeekPicks).length > 0
+                    ? <div className="px-5 py-4">
+                        <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
+                        <div className="space-y-2">
+                            {Object.entries(myWeekPicks).map(([match, pick]) => {
+                                const parts = match.split(/ vs /i);
+                                const label = parts.length === 2
+                                    ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
+                                    : match;
+                                return (
+                                    <div key={match} className="flex items-center justify-between text-sm">
+                                        <span className="text-white/60">{label}</span>
+                                        <span className="text-sky-400 font-medium">{formatTeamName(pick)}</span>
+                                    </div>
+                                );
+                            })}
+                        </div>
+                        <div className="text-white/30 text-xs mt-3">Results pending</div>
+                      </div>
+                    : <div className="px-5 py-6 text-center text-white/60 text-sm">Picks are in — results pending</div>
+            )}
             <div className="divide-y divide-white/5">
                 {hasResults && matchList.map((match, i) => {
                     const normKey = match.toLowerCase().trim();
