@@ -17,6 +17,10 @@
         .page-bg { min-height: 100vh; position: relative; z-index: 1; }
         .bg-logos { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
         .bg-logos img { position: absolute; opacity: 0.24; filter: grayscale(1) brightness(2.2) contrast(0.7); }
+        @media (max-width: 640px) {
+            .bg-logos img { opacity: 0.18; transform-origin: center; }
+            .bg-logos img:nth-child(3n+1), .bg-logos img:nth-child(3n+2) { display: none; }
+        }
         .card { background: rgba(50,160,70,0.75); border: 1px solid rgba(80,200,100,0.7); border-radius: 1rem; color: white; }
         .card-inset { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(50,180,75,0.2); }
         .rank-1 { background: linear-gradient(135deg, #f59e0b, #d97706); color: white; }
