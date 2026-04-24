@@ -18,8 +18,7 @@
         .bg-logos { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
         .bg-logos img { position: absolute; opacity: 0.24; filter: grayscale(1) brightness(2.2) contrast(0.7); }
         @media (max-width: 640px) {
-            .bg-logos img { opacity: 0.18; transform-origin: center; }
-            .bg-logos img:nth-child(3n+1), .bg-logos img:nth-child(3n+2) { display: none; }
+            .bg-logos img { opacity: 0.2; }
         }
         .card { background: rgba(50,160,70,0.75); border: 1px solid rgba(80,200,100,0.7); border-radius: 1rem; color: white; }
         .card-inset { background: rgba(0,0,0,0.2); border-top: 1px solid rgba(50,180,75,0.2); }
@@ -1183,6 +1182,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
 
 function BackgroundLogos() {
     const [logos, setLogos] = useState([]);
+    const [isMobile, setIsMobile] = useState(() => typeof window !== 'undefined' && window.innerWidth <= 640);
     useEffect(() => {
         fetch('https://site.api.espn.com/apis/site/v2/sports/soccer/usa.nwsl/teams')
             .then(r => r.json())
@@ -1191,15 +1191,19 @@ function BackgroundLogos() {
                 const urls = teams.map(t => t.team?.logos?.[0]?.href).filter(Boolean);
                 setLogos(urls);
             }).catch(() => {});
+        const onResize = () => setIsMobile(window.innerWidth <= 640);
+        window.addEventListener('resize', onResize);
+        return () => window.removeEventListener('resize', onResize);
     }, []);
     if (!logos.length) return null;
+    const count = isMobile ? logos.length : 36;
     const tiles = [];
-    for (let i = 0; i < 36; i++) {
+    for (let i = 0; i < count; i++) {
         const logo = logos[i % logos.length];
         const top = ((i * 79 + 13) % 100);
         const left = ((i * 127 + 41) % 100);
         const rot = ((i * 53) % 60) - 30;
-        const size = 56 + ((i * 17) % 48);
+        const size = isMobile ? 48 + ((i * 11) % 28) : 56 + ((i * 17) % 48);
         tiles.push({ logo, top, left, rot, size, key: i });
     }
     return (
