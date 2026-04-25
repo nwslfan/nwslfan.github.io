@@ -1015,10 +1015,14 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                 const myPick = myWeekPicks?.[match];
                                 if (!myPick || !result) return null;
                                 const correct = normTeam(myPick) === result;
+                                const myCount = matchDist[normalizeResult(myPick)] || 0;
+                                const myPct = total > 0 ? myCount/total : 0;
+                                const myUnderdog = correct && myPct < CONFIG.bonusThreshold;
                                 return (
-                                    <div className="flex items-center gap-3 text-xs mt-3 pt-3 border-t border-white/5">
+                                    <div className="flex items-center gap-2 text-xs mt-3 pt-3 border-t border-white/5">
                                         <span className="text-white/50 flex-1">Your pick</span>
                                         <span className={`font-medium ${correct ? 'text-green-400' : 'text-red-400'}`}>{formatTeamName(myPick)}</span>
+                                        {myUnderdog && <span className="bonus-pill flex-shrink-0" title="Underdog bonus">★</span>}
                                     </div>
                                 );
                             })()}
