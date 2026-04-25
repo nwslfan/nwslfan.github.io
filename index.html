@@ -1023,10 +1023,13 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                 const label = parts.length === 2
                                     ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
                                     : match;
+                                const result = normResults[match.toLowerCase().trim()];
+                                const correct = result !== undefined && normTeam(pick) === result;
+                                const colorCls = result === undefined ? 'text-sky-400' : correct ? 'text-green-400' : 'text-red-400';
                                 return (
                                     <div key={match} className="flex items-center gap-3 text-sm">
                                         <span className="text-white/60 flex-1 min-w-0 truncate">{label}</span>
-                                        <span className="text-sky-400 font-medium text-right flex-shrink-0">{formatTeamName(pick)}</span>
+                                        <span className={`${colorCls} font-medium text-right flex-shrink-0`}>{formatTeamName(pick)}</span>
                                     </div>
                                 );
                             })}
