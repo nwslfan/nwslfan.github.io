@@ -1071,8 +1071,8 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                         {myBonus != null && (
                             <div className="flex items-center gap-3 text-xs mt-3 pt-3 border-t border-white/5">
-                                <span className="text-white/50 flex-1">Goals guess</span>
-                                <span className="text-white/85 font-medium">{goalsSoFar} / {myBonus}</span>
+                                <span className="text-white/50">Goals guess: <span className="text-white/85 font-medium">{myBonus}</span></span>
+                                <span className="text-white/50 ml-auto">Goals so far: <span className="text-white/85 font-medium">{goalsSoFar}</span></span>
                             </div>
                         )}
                     </div>
