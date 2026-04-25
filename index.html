@@ -1011,6 +1011,17 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     );
                                 })}
                             </div>
+                            {(() => {
+                                const myPick = myWeekPicks?.[match];
+                                if (!myPick || !result) return null;
+                                const correct = normTeam(myPick) === result;
+                                return (
+                                    <div className="flex items-center gap-3 text-xs mt-3 pt-3 border-t border-white/5">
+                                        <span className="text-white/50 flex-1">Your pick</span>
+                                        <span className={`font-medium ${correct ? 'text-green-400' : 'text-red-400'}`}>{formatTeamName(myPick)}</span>
+                                    </div>
+                                );
+                            })()}
                         </div>
                     );
                 })}
@@ -1019,12 +1030,15 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         const [h, a] = key.split(/ vs /i).map(s => s.trim());
                         return schedWeek?.matches?.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
                     };
-                    const sortedPicks = Object.entries(myWeekPicks).slice().sort(([a], [b]) => {
-                        const ma = findSched(a), mb = findSched(b);
-                        const ta = ma ? (pacificToDate(ma.date, ma.time) || 0) : Infinity;
-                        const tb = mb ? (pacificToDate(mb.date, mb.time) || 0) : Infinity;
-                        return ta - tb;
-                    });
+                    const sortedPicks = Object.entries(myWeekPicks)
+                        .filter(([m]) => normResults[m.toLowerCase().trim()] === undefined)
+                        .sort(([a], [b]) => {
+                            const ma = findSched(a), mb = findSched(b);
+                            const ta = ma ? (pacificToDate(ma.date, ma.time) || 0) : Infinity;
+                            const tb = mb ? (pacificToDate(mb.date, mb.time) || 0) : Infinity;
+                            return ta - tb;
+                        });
+                    if (!sortedPicks.length) return null;
                     return (
                     <div className="px-5 py-4">
                         <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
