@@ -1014,30 +1014,25 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     );
                 })}
-                {hasResults && !allIn && myWeekPicks && (() => {
-                    const pendingMatches = allMatchList.filter(m => normResults[m.toLowerCase().trim()] === undefined);
-                    const userPending = pendingMatches.map(m => ({ match: m, pick: myWeekPicks[m] })).filter(x => x.pick);
-                    if (!userPending.length) return null;
-                    return (
-                        <div className="px-5 py-4">
-                            <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your remaining picks</div>
-                            <div className="space-y-2">
-                                {userPending.map(({match, pick}) => {
-                                    const parts = match.split(/ vs /i);
-                                    const label = parts.length === 2
-                                        ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
-                                        : match;
-                                    return (
-                                        <div key={match} className="flex items-center gap-3 text-sm">
-                                            <span className="text-white/60 flex-1 min-w-0 truncate">{label}</span>
-                                            <span className="text-sky-400 font-medium text-right flex-shrink-0">{formatTeamName(pick)}</span>
-                                        </div>
-                                    );
-                                })}
-                            </div>
+                {hasResults && !allIn && myWeekPicks && Object.keys(myWeekPicks).length > 0 && (
+                    <div className="px-5 py-4">
+                        <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
+                        <div className="space-y-2">
+                            {Object.entries(myWeekPicks).map(([match, pick]) => {
+                                const parts = match.split(/ vs /i);
+                                const label = parts.length === 2
+                                    ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
+                                    : match;
+                                return (
+                                    <div key={match} className="flex items-center gap-3 text-sm">
+                                        <span className="text-white/60 flex-1 min-w-0 truncate">{label}</span>
+                                        <span className="text-sky-400 font-medium text-right flex-shrink-0">{formatTeamName(pick)}</span>
+                                    </div>
+                                );
+                            })}
                         </div>
-                    );
-                })()}
+                    </div>
+                )}
                 {allIn && bonusGuesses.length > 0 && (
                     <div className="px-5 py-4">
                         <div className="text-white/85 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
