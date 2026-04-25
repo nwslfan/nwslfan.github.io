@@ -958,9 +958,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
                                     : match;
                                 return (
-                                    <div key={match} className="flex items-center justify-between text-sm">
-                                        <span className="text-white/60">{label}</span>
-                                        <span className="text-sky-400 font-medium">{formatTeamName(pick)}</span>
+                                    <div key={match} className="flex items-center gap-3 text-sm">
+                                        <span className="text-white/60 flex-1 min-w-0 truncate">{label}</span>
+                                        <span className="text-sky-400 font-medium text-right flex-shrink-0">{formatTeamName(pick)}</span>
                                     </div>
                                 );
                             })}
@@ -1028,9 +1028,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                         ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
                                         : match;
                                     return (
-                                        <div key={match} className="flex items-center justify-between text-sm">
-                                            <span className="text-white/60">{label}</span>
-                                            <span className="text-sky-400 font-medium">{formatTeamName(pick)}</span>
+                                        <div key={match} className="flex items-center gap-3 text-sm">
+                                            <span className="text-white/60 flex-1 min-w-0 truncate">{label}</span>
+                                            <span className="text-sky-400 font-medium text-right flex-shrink-0">{formatTeamName(pick)}</span>
                                         </div>
                                     );
                                 })}
