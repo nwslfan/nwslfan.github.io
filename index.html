@@ -1022,7 +1022,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                     <div className="flex items-center gap-2 text-xs mt-3 pt-3 border-t border-white/5">
                                         <span className="text-white/50 flex-1">Your pick</span>
                                         <span className={`font-medium ${correct ? 'text-green-400' : 'text-red-400'}`}>{formatTeamName(myPick)}</span>
-                                        {myUnderdog && <span className="bonus-pill flex-shrink-0" title="Underdog bonus">★</span>}
+                                        <span className="flex-shrink-0" style={{width:'1.5rem', textAlign:'center'}}>{myUnderdog && <span className="bonus-pill" title="Underdog bonus">★</span>}</span>
                                     </div>
                                 );
                             })()}
