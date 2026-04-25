@@ -935,7 +935,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
         <div>
             <div className="px-5 pt-2 pb-3 flex items-center justify-between">
                 <div>
-                    <h2 className="text-white font-semibold">Week {weekNum} — Picks</h2>
+                    <h2 className="text-white font-semibold">Week {weekNum}</h2>
                     <div className="text-white/75 text-xs mt-0.5">
                         {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Partial results'}
                         {schedWeek && <span className="ml-1">{dateRange(schedWeek)}</span>}
