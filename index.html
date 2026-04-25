@@ -929,7 +929,13 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
     const schedWeek = scheduleWeeks?.find(w => w.weekNum === weekNum);
 
     // Load this user's saved picks from localStorage
-    const myWeekPicks = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum]?.picks || null; } catch (_) { return null; } })();
+    const mySaved = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum] || null; } catch (_) { return null; } })();
+    const myWeekPicks = mySaved?.picks || null;
+    const myBonus = mySaved?.bonus != null ? mySaved.bonus : null;
+    const goalsSoFar = (schedWeek?.matches || []).reduce((sum, m) => {
+        const sg = m.score?.match(/(\d+)\s*[–-]\s*(\d+)/);
+        return sg ? sum + parseInt(sg[1]) + parseInt(sg[2]) : sum;
+    }, 0);
 
     return (
         <div>
@@ -1063,6 +1069,12 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                                 );
                             })}
                         </div>
+                        {myBonus != null && (
+                            <div className="flex items-center gap-3 text-xs mt-3 pt-3 border-t border-white/5">
+                                <span className="text-white/50 flex-1">Goals guess</span>
+                                <span className="text-white/85 font-medium">{goalsSoFar} / {myBonus}</span>
+                            </div>
+                        )}
                     </div>
                     );
                 })()}
