@@ -1014,11 +1014,22 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     );
                 })}
-                {hasResults && !allIn && myWeekPicks && Object.keys(myWeekPicks).length > 0 && (
+                {hasResults && !allIn && myWeekPicks && Object.keys(myWeekPicks).length > 0 && (() => {
+                    const findSched = (key) => {
+                        const [h, a] = key.split(/ vs /i).map(s => s.trim());
+                        return schedWeek?.matches?.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
+                    };
+                    const sortedPicks = Object.entries(myWeekPicks).slice().sort(([a], [b]) => {
+                        const ma = findSched(a), mb = findSched(b);
+                        const ta = ma ? (pacificToDate(ma.date, ma.time) || 0) : Infinity;
+                        const tb = mb ? (pacificToDate(mb.date, mb.time) || 0) : Infinity;
+                        return ta - tb;
+                    });
+                    return (
                     <div className="px-5 py-4">
                         <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
                         <div className="space-y-2">
-                            {Object.entries(myWeekPicks).map(([match, pick]) => {
+                            {sortedPicks.map(([match, pick]) => {
                                 const parts = match.split(/ vs /i);
                                 const label = parts.length === 2
                                     ? `${formatTeamName(parts[0].trim())} vs ${formatTeamName(parts[1].trim())}`
@@ -1035,7 +1046,8 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             })}
                         </div>
                     </div>
-                )}
+                    );
+                })()}
                 {allIn && bonusGuesses.length > 0 && (
                     <div className="px-5 py-4">
                         <div className="text-white/85 text-xs uppercase tracking-wider mb-3 flex items-center gap-2">
