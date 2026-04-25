@@ -1045,7 +1045,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     if (!sortedPicks.length) return null;
                     return (
                     <div className="px-5 py-4">
-                        <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
+                        <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your remaining picks</div>
                         <div className="space-y-2">
                             {sortedPicks.map(([match, pick]) => {
                                 const parts = match.split(/ vs /i);
