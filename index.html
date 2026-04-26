@@ -1367,16 +1367,28 @@ function App() {
                     const [h, a] = parts.map(s => s.trim());
                     return !sw || !!sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
                 }));
+                // Canonicalize column names against the schedule so that variant spellings
+                // (e.g. "Bay" vs "Bay FC") collapse to a single key.
+                const canonical = new Map();
+                validCols.forEach(col => {
+                    const [h, a] = col.split(/ vs /i).map(s => s.trim());
+                    const sm = sw?.matches?.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
+                    canonical.set(col, sm ? `${sm.home} vs ${sm.away}` : col);
+                });
                 validCols.forEach(col => {
                     const [h, a] = col.split(/ vs /i).map(s => s.trim());
                     const g = allGames.find(g => teamsMatch(g.home, h) && teamsMatch(g.away, a));
-                    if (g?.winner) derivedResults[col] = g.winner;
+                    if (g?.winner) derivedResults[canonical.get(col)] = g.winner;
                 });
                 // Filter picks to only include valid (in-schedule) columns so invalid picks
                 // (e.g. wrong-week games) don't affect allIn or bonus computation.
                 const filteredPicks = picks.map(p => ({
                     ...p,
-                    picks: Object.fromEntries(Object.entries(p.picks).filter(([col]) => validCols.has(col)))
+                    picks: Object.fromEntries(
+                        Object.entries(p.picks)
+                            .filter(([col]) => validCols.has(col))
+                            .map(([col, v]) => [canonical.get(col), v])
+                    )
                 }));
                 // Compute bonus answer (total goals) from valid pick games with known scores.
                 const bonusScores = [];
