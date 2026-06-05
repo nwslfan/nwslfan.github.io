@@ -353,7 +353,7 @@ const DEMO_WEEKS = [
     {
         week: 1,
         results: {
-            'Washington Spirit Vs Portland Thorns FC': 'Washington Spirit',
+            'Washington Spirit vs Portland Thorns FC': 'Washington Spirit',
             'Boston Legacy vs Gotham FC': 'Gotham FC',
             'KC Current vs Utah Royals FC': 'KC Current',
             'Bay FC vs Denver Summit': 'Draw',
@@ -545,15 +545,24 @@ function teamsMatch(a, b) {
     const na = normTeam(a), nb = normTeam(b);
     return na === nb || na.includes(nb) || nb.includes(na);
 }
-function findScheduleMatch(schedWeeks, schedWeekNum, homePickStr, awayPickStr) {
-    const sw = schedWeeks.find(w => w.weekNum === schedWeekNum);
-    if (!sw) return null;
-    // Parse home/away from pick column header ("Team A vs Team B")
-    const parts = homePickStr.split(/ vs /i);
-    if (parts.length !== 2) return null;
-    const [h, a] = parts.map(s => s.trim());
-    return sw.matches.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a)) || null;
+function parseMatchKey(col) {
+    const parts = col.split(/ vs /i).map(s => s.trim());
+    return parts.length === 2 ? { home: parts[0], away: parts[1] } : null;
 }
+
+const MY_PICKS_KEY = 'nwsl_my_picks';
+const mySavedStore = {
+    getAll() {
+        try { return JSON.parse(localStorage.getItem(MY_PICKS_KEY) || '{}'); }
+        catch { return {}; }
+    },
+    get(weekNum) { return this.getAll()[weekNum] || null; },
+    set(weekNum, entry) {
+        const all = this.getAll();
+        all[weekNum] = entry;
+        try { localStorage.setItem(MY_PICKS_KEY, JSON.stringify(all)); } catch {}
+    },
+};
 
 
 // ================================================================
@@ -830,7 +839,6 @@ function ScheduleSection({ scheduleWeeks }) {
     const activeWeek = scheduleWeeks.find(w => w.weekNum === viewWeekNum) || currentScheduleWeek(scheduleWeeks);
     if (!activeWeek) return null;
 
-    // Group matches by day
     const byDay = {};
     activeWeek.matches.forEach(m => {
         if (!byDay[m.date]) byDay[m.date] = { day: m.day, date: m.date, matches: [] };
@@ -906,7 +914,7 @@ function ScheduleSection({ scheduleWeeks }) {
 function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
     const { results, bonusAnswer } = weekDef;
     const meta = weekScore?._meta || {};
-    const { dist={}, normResults={}, bonusWinners=new Set() } = meta;
+    const { dist={}, normResults={} } = meta;
 
     const allMatches = new Set();
     Object.values(weekScore||{}).forEach(ps => { if (ps._meta) return; ps.picks?.forEach(p => allMatches.add(p.match)); });
@@ -925,11 +933,9 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
     const hasResults = Object.keys(results).length > 0;
     const allIn = allMatchList.length > 0 && allMatchList.every(m => normResults[m.toLowerCase().trim()] !== undefined);
 
-    // Try to find matching schedule week (same week num)
     const schedWeek = scheduleWeeks?.find(w => w.weekNum === weekNum);
 
-    // Load this user's saved picks from localStorage
-    const mySaved = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum] || null; } catch (_) { return null; } })();
+    const mySaved = mySavedStore.get(weekNum);
     const myWeekPicks = mySaved?.picks || null;
     const myBonus = mySaved?.bonus != null ? mySaved.bonus : null;
     const goalsSoFar = (schedWeek?.matches || []).reduce((sum, m) => {
@@ -985,7 +991,6 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     const home = parts[0]?.trim()||'', away = parts[1]?.trim()||'';
                     const outcomes = home && away ? [home,'Draw',away] : [];
 
-                    // Find schedule match for broadcast info
                     const schedMatch = schedWeek?.matches?.find(m => teamsMatch(m.home, home) && teamsMatch(m.away, away));
 
                     return (
@@ -1112,7 +1117,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
 // MAIN APP
 // ================================================================
 function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
-    const saved = (() => { try { return JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}')[weekNum] || null; } catch (_) { return null; } })();
+    const saved = mySavedStore.get(weekNum);
     const [isNew, setIsNew] = useState(false);
     const [player, setPlayer] = useState(saved?.player && knownPlayers.includes(saved.player) ? saved.player : '');
     const [nickname, setNickname] = useState('');
@@ -1146,11 +1151,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
             });
             const json = await res.json();
             if (json.ok) {
-                try {
-                    const saved = JSON.parse(localStorage.getItem('nwsl_my_picks') || '{}');
-                    saved[weekNum] = { player: playerName, picks: gamePicks, bonus: parseInt(bonus) || null };
-                    localStorage.setItem('nwsl_my_picks', JSON.stringify(saved));
-                } catch (_) {}
+                mySavedStore.set(weekNum, { player: playerName, picks: gamePicks, bonus: parseInt(bonus) || null });
                 setStatus('success');
             }
             else { setStatus('error'); setErrorMsg(json.error || 'Submission failed'); }
@@ -1346,7 +1347,6 @@ function App() {
                     .filter(g => !espnKeys.has(`${normTeam(g.home)}|${normTeam(g.away)}`))
             ];
 
-            // Merge scores into schedule for display
             liveSchedule.forEach(sw => {
                 sw.matches.forEach(m => {
                     const g = allGames.find(g => teamsMatch(g.home, m.home) && teamsMatch(g.away, m.away));
@@ -1421,7 +1421,6 @@ function App() {
     const computed = useMemo(() => picks ? computeAll(picks) : null, [picks]);
     const weeks = computed?.weeks || [];
     const displayWeek = activeWeek ?? currentScheduleWeek(scheduleWeeks)?.weekNum ?? (weeks.length > 0 ? weeks[weeks.length-1] : null);
-    const displayWeekDef = picks?.find(w => w.week === displayWeek);
 
     if (loading) return (
         <div className="page-bg min-h-screen flex items-center justify-center">
