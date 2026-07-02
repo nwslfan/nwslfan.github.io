@@ -598,11 +598,12 @@ function parseFormCSV(csvText) {
             (emailCol    && row[emailCol]?.trim()) || 'Unknown'
         );
         const ts = tsCol ? row[tsCol] : '';
-        if (!byPlayer[player] || ts > byPlayer[player].timestamp) {
+        if (!byPlayer[player] || new Date(ts) > new Date(byPlayer[player].timestamp)) {
             const picks = {};
             matchCols.forEach(col => { if (row[col]?.trim()) picks[col] = row[col].trim(); });
+            const bonusNum = bonusCol ? parseInt(row[bonusCol]) : NaN;
             byPlayer[player] = { player, timestamp: ts, picks,
-                bonus: bonusCol ? (parseInt(row[bonusCol]) || null) : null };
+                bonus: Number.isNaN(bonusNum) ? null : bonusNum };
         }
     });
     return Object.values(byPlayer);
@@ -1006,7 +1007,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                             <div className="mb-3">
                                 <div className="flex items-start justify-between gap-2">
                                     <div className="text-white text-sm font-medium">
-                                        {schedMatch?.score ? (() => { const [hs,as] = schedMatch.score.split('-'); return <>{formatTeamName(schedMatch.home)} <span className="text-pink-400">{hs} - {as}</span> {formatTeamName(schedMatch.away)}</>; })() : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
+                                        {schedMatch?.score ? (() => { const [hs,as] = schedMatch.score.split(/[-–]/); return <>{formatTeamName(schedMatch.home)} <span className="text-pink-400">{hs} - {as}</span> {formatTeamName(schedMatch.away)}</>; })() : <>{formatTeamName(home)} <span className="text-white/70">vs</span> {formatTeamName(away)}</>}
                                     </div>
                                 </div>
                                 {!result && <div className="text-white/70 text-xs mt-0.5">Pending</div>}
@@ -1144,6 +1145,8 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
 
     async function handleSubmit() {
         setStatus('submitting');
+        const bonusNum = parseInt(bonus);
+        const bonusVal = Number.isNaN(bonusNum) ? null : bonusNum;
         try {
             const res = await fetch(PICKS_SCRIPT_URL, {
                 method: 'POST',
@@ -1154,12 +1157,12 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                     fullName: isNew ? fullName : '',
                     email: isNew ? email : '',
                     picks: gamePicks,
-                    bonus: parseInt(bonus) || null,
+                    bonus: bonusVal,
                 }),
             });
             const json = await res.json();
             if (json.ok) {
-                mySavedStore.set(weekNum, { player: playerName, picks: gamePicks, bonus: parseInt(bonus) || null });
+                mySavedStore.set(weekNum, { player: playerName, picks: gamePicks, bonus: bonusVal });
                 setStatus('success');
             }
             else { setStatus('error'); setErrorMsg(json.error || 'Submission failed'); }
@@ -1327,7 +1330,12 @@ function App() {
             const embeddedSchedule = parseSchedule(SCHEDULE_CSV);
             const schedulePromise = fetch(SCHEDULE_URL)
                 .then(r => r.ok ? r.text() : null)
-                .then(text => text ? parseSchedule(text) : null)
+                .then(text => {
+                    if (!text) return null;
+                    // A 200 non-CSV response parses to []; keep the embedded fallback then.
+                    const parsed = parseSchedule(text);
+                    return parsed.length ? parsed : null;
+                })
                 .catch(() => null);
 
             // Fetch cached historical results + ESPN for last 7 days only
@@ -1421,7 +1429,7 @@ function App() {
                 });
                 const computedBonus = allHaveScores
                     ? bonusScores.reduce((sum, score) => {
-                        const [h, a] = score.split('-').map(Number);
+                        const [h, a] = score.split(/[-–]/).map(Number);
                         return sum + (isNaN(h) || isNaN(a) ? 0 : h + a);
                       }, 0)
                     : null;

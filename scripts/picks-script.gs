@@ -6,6 +6,7 @@
 
 const SPREADSHEET_ID = '1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI';
 const PLAYERS_TAB = 'Players';
+const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1x6eyrqwe64kLfzvKfkP6x1mAOHQTnA9SA4WQMacHdFY/export?format=csv&gid=0';
 
 const HEADERS = ['Timestamp', 'Team Name', 'Team Name/Nickname', 'Full Name', 'Email'];
 const BONUS_HEADER = 'BONUS: Total goals scored this week';
@@ -38,6 +39,11 @@ function doPost(e) {
 function submitPicks(body) {
   const { week, teamName, nickname, fullName, email, picks, bonus } = body;
   // picks = { "Team A vs Team B": "Team A", ... }
+
+  const deadline = getWeekDeadline(week);
+  if (deadline && new Date() > deadline) {
+    throw new Error(`Picks for Week ${week} are closed — the deadline (Wednesday noon Pacific) has passed.`);
+  }
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const tabName = `Week ${week}`;
@@ -101,10 +107,11 @@ function submitPicks(body) {
     return picks[h] || '';
   });
 
+  const safeRow = row.map(sanitizeCell);
   if (existingRow > 0) {
-    sheet.getRange(existingRow, 1, 1, row.length).setValues([row]);
+    sheet.getRange(existingRow, 1, 1, safeRow.length).setValues([safeRow]);
   } else {
-    sheet.appendRow(row);
+    sheet.appendRow(safeRow);
   }
 
   // Update Players tab
@@ -131,14 +138,14 @@ function upsertPlayer(ss, { teamName, nickname, fullName, email }) {
     const names  = sheet.getRange(2, 2, sheet.getLastRow() - 1, 1).getValues().flat();
     for (let i = 0; i < emails.length; i++) {
       if (emails[i] === key || names[i] === key) {
-        sheet.getRange(i + 2, 1).setValue(displayName);
+        sheet.getRange(i + 2, 1).setValue(sanitizeCell(displayName));
         found = true;
         break;
       }
     }
   }
   if (!found) {
-    sheet.appendRow([displayName, fullName || '', email || '', new Date().toISOString()]);
+    sheet.appendRow([displayName, fullName || '', email || '', new Date().toISOString()].map(sanitizeCell));
   }
 }
 
@@ -172,17 +179,75 @@ function getPicks(week) {
       (emailCol >= 0 && String(row[emailCol] || '').trim()) || 'Unknown'
     );
     const ts = tsCol >= 0 ? String(row[tsCol] || '') : '';
-    if (!byPlayer[player] || ts > byPlayer[player].timestamp) {
+    if (!byPlayer[player] || new Date(ts) > new Date(byPlayer[player].timestamp)) {
       const picks = {};
       matchCols.forEach(ci => { const v = String(row[ci] || '').trim(); if (v) picks[headers[ci]] = v; });
       const bonusRaw = bonusCol >= 0 ? row[bonusCol] : null;
-      byPlayer[player] = { player, timestamp: ts, picks, bonus: bonusRaw !== '' && bonusRaw !== null ? parseInt(bonusRaw) || null : null };
+      const bonusNum = parseInt(bonusRaw);
+      byPlayer[player] = { player, timestamp: ts, picks, bonus: Number.isNaN(bonusNum) ? null : bonusNum };
     }
   }
   return Object.values(byPlayer);
 }
 
+// ── Deadline (mirrors getPicksDeadline in index.html) ─────────────
+// Picks for a week close Wednesday 12:00 PM Pacific on/before the
+// week's first game, derived from the public schedule sheet CSV.
+// Fails open (returns null) if the schedule can't be fetched.
+
+function getWeekDeadline(week) {
+  try {
+    const csv = UrlFetchApp.fetch(SCHEDULE_CSV_URL).getContentText();
+    const rows = Utilities.parseCsv(csv);
+    const headers = rows[0];
+    const weekCol = headers.indexOf('WEEK');
+    const dateCol = headers.indexOf('Date');
+    const homeCol = headers.indexOf('Home Team');
+    const awayCol = headers.indexOf('Away Team');
+    if (weekCol < 0 || dateCol < 0) return null;
+
+    let weekNum = 0;
+    let firstGame = null;
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i];
+      if (/^WEEK\s+OF/i.test(String(row[weekCol] || '').trim())) weekNum++;
+      if (weekNum > week) break;
+      if (weekNum !== week) continue;
+      const dateStr = String(row[dateCol] || '').trim();
+      if (!dateStr || !String(row[homeCol] || '').trim() || !String(row[awayCol] || '').trim()) continue;
+      const [m, d, y] = dateStr.split('/').map(Number);
+      if (!m || !d || !y) continue;
+      const dt = new Date(y, m - 1, d);
+      if (!firstGame || dt < firstGame) firstGame = dt;
+    }
+    if (!firstGame) return null;
+
+    // Wednesday on/before the first game
+    const daysToWed = (firstGame.getDay() - 3 + 7) % 7;
+    const wed = new Date(firstGame);
+    wed.setDate(firstGame.getDate() - daysToWed);
+    return pacificNoon(wed.getFullYear(), wed.getMonth() + 1, wed.getDate());
+  } catch (err) {
+    return null;
+  }
+}
+
+// Noon Pacific on the given calendar day, DST-safe (same trick as
+// pacificToDate in index.html: guess UTC, correct by the local offset).
+function pacificNoon(y, m, d) {
+  const guess = new Date(Date.UTC(y, m - 1, d, 12, 0));
+  const local = Utilities.formatDate(guess, 'America/Los_Angeles', 'HH:mm');
+  const parts = local.split(':');
+  const diff = 12 * 60 - (Number(parts[0]) * 60 + Number(parts[1]));
+  return new Date(guess.getTime() + diff * 60000);
+}
+
 // ── Helpers ───────────────────────────────────────────────────────
+
+// Prevent formula injection: neutralize user strings starting with =, +, - or @.
+function sanitizeCell(v) {
+  return (typeof v === 'string' && /^[=+\-@]/.test(v)) ? "'" + v : v;
+}
 
 function jsonResponse(data) {
   return ContentService
