@@ -34,6 +34,13 @@
         .pills-scroll::-webkit-scrollbar { display: none; }
         .no-scrollbar { scrollbar-width: none; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
+        @media (hover: hover) and (pointer: fine) {
+            .pills-scroll { scrollbar-width: thin; scrollbar-color: rgba(233,30,140,0.5) transparent; padding-bottom: 8px; }
+            .pills-scroll::-webkit-scrollbar { display: block; height: 6px; }
+            .pills-scroll::-webkit-scrollbar-track { background: rgba(255,255,255,0.06); border-radius: 999px; }
+            .pills-scroll::-webkit-scrollbar-thumb { background: rgba(233,30,140,0.5); border-radius: 999px; }
+            .pills-scroll::-webkit-scrollbar-thumb:hover { background: rgba(233,30,140,0.8); }
+        }
         .week-pill-active { background: #e91e8c; color: white; }
         .week-pill-inactive { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.45); }
         .week-pill-inactive:hover { color: rgba(255,255,255,0.7); }
