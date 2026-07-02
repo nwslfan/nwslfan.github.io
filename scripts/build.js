@@ -23,7 +23,7 @@ const { code } = esbuild.transformSync(m[1], {
 const BABEL_CDN_RE = /\s*<script[^>]*@babel\/standalone[^>]*><\/script>/;
 const out = html
   .replace(BABEL_CDN_RE, '')
-  .replace(SCRIPT_RE, `<script>${code}</script>`);
+  .replace(SCRIPT_RE, () => `<script>${code}</script>`);
 
 fs.mkdirSync('dist', { recursive: true });
 fs.writeFileSync(path.join('dist', 'index.html'), out);
