@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-02T22:49:36.324Z",
+  "updatedAt": "2026-07-06T12:45:23.512Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -651,6 +651,55 @@
       "away": "North Carolina Courage",
       "winner": "North Carolina Courage",
       "score": "1-2"
+    },
+    {
+      "date": "2026-07-04",
+      "home": "Washington Spirit",
+      "away": "Houston Dash",
+      "winner": "Washington Spirit",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-07-04",
+      "home": "Denver Summit FC",
+      "away": "Kansas City Current",
+      "winner": "Kansas City Current",
+      "score": "0-3"
+    },
+    {
+      "date": "2026-07-04",
+      "home": "Angel City FC",
+      "away": "Orlando Pride",
+      "winner": "Angel City FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-07-04",
+      "home": "North Carolina Courage",
+      "away": "Seattle Reign FC",
+      "winner": "North Carolina Courage",
+      "score": "3-1"
+    },
+    {
+      "date": "2026-07-05",
+      "home": "San Diego Wave FC",
+      "away": "Gotham FC",
+      "winner": "San Diego Wave FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-07-05",
+      "home": "Boston Legacy FC",
+      "away": "Bay FC",
+      "winner": "Draw",
+      "score": "2-2"
+    },
+    {
+      "date": "2026-07-05",
+      "home": "Chicago Stars FC",
+      "away": "Utah Royals",
+      "winner": "Chicago Stars FC",
+      "score": "3-2"
     }
   ]
 }
