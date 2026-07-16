@@ -1514,6 +1514,17 @@ function App() {
 
     const computed = useMemo(() => picks ? computeAll(picks) : null, [picks]);
     const weeks = computed?.weeks || [];
+
+    // Player count barely changes, so show last visit's cached value instantly
+    // instead of waiting for all picks to load.
+    const playerCount = (!picksLoading && computed)
+        ? computed.standings.length
+        : (parseInt(localStorage.getItem('nwsl_player_count')) || null);
+    useEffect(() => {
+        if (!picksLoading && computed?.standings.length) {
+            try { localStorage.setItem('nwsl_player_count', String(computed.standings.length)); } catch {}
+        }
+    }, [picksLoading, computed]);
     const displayWeek = activeWeek ?? currentScheduleWeek(scheduleWeeks)?.weekNum ?? (weeks.length > 0 ? weeks[weeks.length-1] : null);
 
     if (loading) return (
@@ -1533,9 +1544,9 @@ function App() {
                 {usingDemo && <div className="demo-banner">Showing demo data. Add Google Sheet URLs to <code className="font-mono">WEEKS</code> in the config.</div>}
                 {errors.map((e,i) => <div key={i} className="error-banner">{e}</div>)}
 
-                {computed && <CollapsibleCard title="Prize Pool">{picksLoading
-                    ? <div className="p-5 text-center text-white/60 text-sm">Loading data...</div>
-                    : <PrizePool playerCount={computed.standings.length} />}</CollapsibleCard>}
+                {computed && <CollapsibleCard title="Prize Pool">{playerCount
+                    ? <PrizePool playerCount={playerCount} />
+                    : <div className="p-5 text-center text-white/60 text-sm">Loading data...</div>}</CollapsibleCard>}
 
                 <CollapsibleCard title="How It Works">
                     <div className="p-5 text-white/85 text-sm leading-relaxed">
