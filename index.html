@@ -1543,7 +1543,7 @@ function App() {
                 {errors.map((e,i) => <div key={i} className="error-banner">{e}</div>)}
 
                 {computed && <CollapsibleCard title="Prize Pool">{picksLoading
-                    ? <div className="p-5 text-center text-white/60 text-sm">Loading picks...</div>
+                    ? <div className="p-5 text-center text-white/60 text-sm">Loading data...</div>
                     : <PrizePool playerCount={computed.standings.length} />}</CollapsibleCard>}
 
                 <CollapsibleCard title="How It Works">
@@ -1559,7 +1559,7 @@ function App() {
                 </CollapsibleCard>
 
                 {computed && <CollapsibleCard title="Standings">{picksLoading
-                    ? <div className="p-5 text-center text-white/60 text-sm">Loading picks...</div>
+                    ? <div className="p-5 text-center text-white/60 text-sm">Loading data...</div>
                     : <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} />}</CollapsibleCard>}
 
                 {computed && weeks.length > 0 && <CollapsibleCard title="Picks">{(() => {
