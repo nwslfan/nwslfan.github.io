@@ -1313,6 +1313,7 @@ function App() {
     const [picks, setPicks] = useState(null);
     const [scheduleWeeks, setScheduleWeeks] = useState(() => parseSchedule(SCHEDULE_CSV));
     const [loading, setLoading] = useState(true);
+    const [picksLoading, setPicksLoading] = useState(true);
     const [errors, setErrors] = useState([]);
     const [usingDemo, setUsingDemo] = useState(false);
     const [activeWeek, setActiveWeek] = useState(null);
@@ -1340,6 +1341,7 @@ function App() {
                 setPicks(DEMO_WEEKS);
                 setUsingDemo(true);
                 setLoading(false);
+                setPicksLoading(false);
                 return;
             }
 
@@ -1363,22 +1365,9 @@ function App() {
             recentStart.setDate(recentStart.getDate() - 7);
             const espnPromise = fetchEspnScores(recentStart, new Date()).catch(() => []);
 
-            // All picks + schedule + cached + ESPN in parallel
-            const picksPromises = configured.map(wk => {
-                if (wk.picksUrl) {
-                    return fetch(wk.picksUrl)
-                        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
-                        .then(text => ({ wk, picks: parseFormCSV(text), ok: true }))
-                        .catch(e => ({ wk, picks: [], ok: false, error: e.message }));
-                }
-                return fetch(`${PICKS_SCRIPT_URL}?action=picks&week=${wk.week}`)
-                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-                    .then(picks => ({ wk, picks: Array.isArray(picks) ? picks : [], ok: true }))
-                    .catch(e => ({ wk, picks: [], ok: false, error: e.message }));
-            });
-
-            const [liveScheduleResult, cached, espnGames, ...picksResults] = await Promise.all([
-                schedulePromise, cachedPromise, espnPromise, ...picksPromises
+            // Schedule + cached results + ESPN first — picks stream in after first render
+            const [liveScheduleResult, cached, espnGames] = await Promise.all([
+                schedulePromise, cachedPromise, espnPromise
             ]);
 
             const liveSchedule = liveScheduleResult || embeddedSchedule;
@@ -1422,12 +1411,16 @@ function App() {
                 });
             });
 
-            const errs = [];
-            const loaded = picksResults.map(({ wk, picks, ok, error }) => {
-                if (!ok) { errs.push(`Week ${wk.week}: ${error}`); return { ...wk, picks: [], results: {} }; }
+            // Render the page now with empty picks; they stream in below.
+            setScheduleWeeks([...liveSchedule]);
+            setPicks(configured.map(wk => ({ ...wk, picks: [], results: {} })));
+            setLoading(false);
+
+            // Derive results, canonicalize pick columns, compute bonus for one week
+            const processWeek = (wk, rawPicks) => {
                 const sw = liveSchedule.find(w => w.weekNum === wk.week);
                 const derivedResults = {};
-                const matchCols = [...new Set(picks.flatMap(p => Object.keys(p.picks)))];
+                const matchCols = [...new Set(rawPicks.flatMap(p => Object.keys(p.picks)))];
                 // validCols = pick columns that are in this week's schedule
                 const validCols = new Set(matchCols.filter(col => {
                     const parts = col.split(/ vs /i);
@@ -1450,7 +1443,7 @@ function App() {
                 });
                 // Filter picks to only include valid (in-schedule) columns so invalid picks
                 // (e.g. wrong-week games) don't affect allIn or bonus computation.
-                const filteredPicks = picks.map(p => ({
+                const filteredPicks = rawPicks.map(p => ({
                     ...p,
                     picks: Object.fromEntries(
                         Object.entries(p.picks)
@@ -1476,12 +1469,54 @@ function App() {
                 const bonusAnswer = (wk.bonusAnswer !== null && wk.bonusAnswer !== undefined) ? wk.bonusAnswer : computedBonus;
                 // Manual results in WEEKS config take precedence
                 return { ...wk, picks: filteredPicks, results: { ...derivedResults, ...wk.results }, bonusAnswer };
+            };
+
+            // Priority request: current week's picks first so the form fills in fast
+            const currentNum = currentScheduleWeek(liveSchedule)?.weekNum;
+            const currentWk = configured.find(w => !w.picksUrl && w.week === currentNum);
+            if (currentWk && PICKS_SCRIPT_URL) {
+                fetch(`${PICKS_SCRIPT_URL}?action=picks&week=${currentWk.week}`)
+                    .then(r => r.json())
+                    .then(raw => {
+                        if (!Array.isArray(raw)) return;
+                        setPicks(prev => prev && prev.map(w => w.week === currentWk.week ? processWeek(currentWk, raw) : w));
+                    })
+                    .catch(() => {});
+            }
+
+            // Batch request: all weeks' picks in one Apps Script call. Falls back
+            // to one request per week if the deployed script predates allPicks.
+            let batch = null;
+            if (PICKS_SCRIPT_URL && configured.some(wk => !wk.picksUrl)) {
+                batch = await fetch(`${PICKS_SCRIPT_URL}?action=allPicks`)
+                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+                    .catch(() => null);
+                if (!batch || typeof batch !== 'object' || Array.isArray(batch) || batch.error) batch = null;
+            }
+
+            const picksResults = await Promise.all(configured.map(wk => {
+                if (wk.picksUrl) {
+                    return fetch(wk.picksUrl)
+                        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.text(); })
+                        .then(text => ({ wk, raw: parseFormCSV(text), ok: true }))
+                        .catch(e => ({ wk, raw: [], ok: false, error: e.message }));
+                }
+                if (batch) return Promise.resolve({ wk, raw: Array.isArray(batch[wk.week]) ? batch[wk.week] : [], ok: true });
+                return fetch(`${PICKS_SCRIPT_URL}?action=picks&week=${wk.week}`)
+                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+                    .then(raw => ({ wk, raw: Array.isArray(raw) ? raw : [], ok: true }))
+                    .catch(e => ({ wk, raw: [], ok: false, error: e.message }));
+            }));
+
+            const errs = [];
+            const loaded = picksResults.map(({ wk, raw, ok, error }) => {
+                if (!ok) { errs.push(`Week ${wk.week}: ${error}`); return { ...wk, picks: [], results: {} }; }
+                return processWeek(wk, raw);
             });
 
             setErrors(errs);
-            setScheduleWeeks([...liveSchedule]);
             setPicks(loaded);
-            setLoading(false);
+            setPicksLoading(false);
         }
         load();
     }, []);
@@ -1507,7 +1542,9 @@ function App() {
                 {usingDemo && <div className="demo-banner">Showing demo data. Add Google Sheet URLs to <code className="font-mono">WEEKS</code> in the config.</div>}
                 {errors.map((e,i) => <div key={i} className="error-banner">{e}</div>)}
 
-                {computed && <CollapsibleCard title="Prize Pool"><PrizePool playerCount={computed.standings.length} /></CollapsibleCard>}
+                {computed && <CollapsibleCard title="Prize Pool">{picksLoading
+                    ? <div className="p-5 text-center text-white/60 text-sm">Loading picks...</div>
+                    : <PrizePool playerCount={computed.standings.length} />}</CollapsibleCard>}
 
                 <CollapsibleCard title="How It Works">
                     <div className="p-5 text-white/85 text-sm leading-relaxed">
@@ -1521,7 +1558,9 @@ function App() {
                     </div>
                 </CollapsibleCard>
 
-                {computed && <CollapsibleCard title="Standings"><Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} /></CollapsibleCard>}
+                {computed && <CollapsibleCard title="Standings">{picksLoading
+                    ? <div className="p-5 text-center text-white/60 text-sm">Loading picks...</div>
+                    : <Leaderboard standings={computed.standings} weekScores={computed.weekScores} weeks={weeks} scoredWeeks={computed.scoredWeeks || []} />}</CollapsibleCard>}
 
                 {computed && weeks.length > 0 && <CollapsibleCard title="Picks">{(() => {
                     const picksWeekNums = new Set(weeks);

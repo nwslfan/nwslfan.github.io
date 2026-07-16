@@ -3,6 +3,7 @@
 //
 // POST ?action=submit  — submit/update picks for a player
 // GET  ?action=picks&week=N — return all picks for week N as JSON
+// GET  ?action=allPicks — return picks for every week as { "N": [...] }
 
 const SPREADSHEET_ID = '1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI';
 const PLAYERS_TAB = 'Players';
@@ -17,6 +18,9 @@ function doGet(e) {
   if (action === 'picks') {
     const week = parseInt(e.parameter.week);
     return jsonResponse(getPicks(week));
+  }
+  if (action === 'allPicks') {
+    return jsonResponse(getAllPicks());
   }
   return jsonResponse({ error: 'Unknown action' });
 }
@@ -177,8 +181,22 @@ function upsertPlayer(ss, { teamName, nickname, fullName, email }) {
 
 function getPicks(week) {
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  const tabName = `Week ${week}`;
-  const sheet = ss.getSheetByName(tabName);
+  return parsePicksSheet(ss.getSheetByName(`Week ${week}`));
+}
+
+// All weeks in one call — opens the spreadsheet once, so it's far faster
+// than one request per week.
+function getAllPicks() {
+  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
+  const out = {};
+  ss.getSheets().forEach(sheet => {
+    const m = sheet.getName().match(/^Week (\d+)$/);
+    if (m) out[m[1]] = parsePicksSheet(sheet);
+  });
+  return out;
+}
+
+function parsePicksSheet(sheet) {
   if (!sheet || sheet.getLastRow() < 2) return [];
 
   const data = sheet.getDataRange().getValues();
