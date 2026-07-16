@@ -923,7 +923,9 @@ function ScheduleSection({ scheduleWeeks }) {
     );
 }
 
-function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
+// resultsOnly: rendered below the still-open picks form mid-week — show only
+// finished games' results, skipping the your-picks blocks the form duplicates.
+function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks, resultsOnly }) {
     const { results, bonusAnswer } = weekDef;
     const meta = weekScore?._meta || {};
     const { dist={}, normResults={} } = meta;
@@ -959,11 +961,11 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
         <div>
             <div className="px-5 pt-2 pb-3 flex items-center justify-between">
                 <div>
-                    <h2 className="text-white font-semibold">Week {weekNum}</h2>
-                    <div className="text-white/75 text-xs mt-0.5">
+                    <h2 className="text-white font-semibold">{resultsOnly ? 'Results so far' : `Week ${weekNum}`}</h2>
+                    {!resultsOnly && <div className="text-white/75 text-xs mt-0.5">
                         {!hasResults ? 'Awaiting results' : allIn ? 'All results in' : 'Partial results'}
                         {schedWeek && <span className="ml-1">{dateRange(schedWeek)}</span>}
-                    </div>
+                    </div>}
                 </div>
                 {allIn && weekWinners.length > 0 && (
                     <div className="text-amber-400 text-xs text-right" title="Weekly winner">
@@ -971,7 +973,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                     </div>
                 )}
             </div>
-            {!hasResults && (
+            {!hasResults && !resultsOnly && (
                 myWeekPicks && Object.keys(myWeekPicks).length > 0
                     ? <div className="px-5 py-4">
                         <div className="text-white/50 text-xs uppercase tracking-wider mb-3">Your picks</div>
@@ -1052,7 +1054,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
                         </div>
                     );
                 })}
-                {hasResults && !allIn && myWeekPicks && Object.keys(myWeekPicks).length > 0 && (() => {
+                {hasResults && !allIn && !resultsOnly && myWeekPicks && Object.keys(myWeekPicks).length > 0 && (() => {
                     const findSched = (key) => {
                         const [h, a] = key.split(/ vs /i).map(s => s.trim());
                         return schedWeek?.matches?.find(m => teamsMatch(m.home, h) && teamsMatch(m.away, a));
@@ -1606,11 +1608,19 @@ function App() {
 
                                 const submitters = weekDef?.picks?.map(p => p.player);
 
-                                // Inline picks form (when Apps Script URL is configured)
+                                // Inline picks form (when Apps Script URL is configured),
+                                // with results-so-far below it once games start finishing
                                 if (PICKS_SCRIPT_URL && sw) {
                                     const knownPlayers = (computed?.standings?.map(s => s.player) || []).slice().sort((a, b) => a.localeCompare(b));
-                                    return <PicksForm key={displayWeek} weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
-                                        submitters={submitters} />;
+                                    const hasAnyResults = weekDef && Object.keys(weekDef.results || {}).length > 0;
+                                    return <>
+                                        <PicksForm key={displayWeek} weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
+                                            submitters={submitters} />
+                                        {hasAnyResults && <div className="border-t border-white/10">
+                                            <WeekSection weekNum={displayWeek} weekDef={weekDef}
+                                                weekScore={computed.weekScores[displayWeek]} scheduleWeeks={scheduleWeeks} resultsOnly />
+                                        </div>}
+                                    </>;
                                 }
 
                                 // Fallback: link to Google Form
