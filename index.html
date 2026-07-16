@@ -1484,16 +1484,8 @@ function App() {
                     .catch(() => {});
             }
 
-            // Batch request: all weeks' picks in one Apps Script call. Falls back
-            // to one request per week if the deployed script predates allPicks.
-            let batch = null;
-            if (PICKS_SCRIPT_URL && configured.some(wk => !wk.picksUrl)) {
-                batch = await fetch(`${PICKS_SCRIPT_URL}?action=allPicks`)
-                    .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
-                    .catch(() => null);
-                if (!batch || typeof batch !== 'object' || Array.isArray(batch) || batch.error) batch = null;
-            }
-
+            // All weeks' picks in parallel, one request per week (HTTP/2 multiplexes
+            // them); standings render once they all land
             const picksResults = await Promise.all(configured.map(wk => {
                 if (wk.picksUrl) {
                     return fetch(wk.picksUrl)
@@ -1501,7 +1493,6 @@ function App() {
                         .then(text => ({ wk, raw: parseFormCSV(text), ok: true }))
                         .catch(e => ({ wk, raw: [], ok: false, error: e.message }));
                 }
-                if (batch) return Promise.resolve({ wk, raw: Array.isArray(batch[wk.week]) ? batch[wk.week] : [], ok: true });
                 return fetch(`${PICKS_SCRIPT_URL}?action=picks&week=${wk.week}`)
                     .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
                     .then(raw => ({ wk, raw: Array.isArray(raw) ? raw : [], ok: true }))
