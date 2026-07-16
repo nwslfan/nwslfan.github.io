@@ -1263,6 +1263,9 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters }) {
                 </div>
                 {!bonusLocked && <input value={bonus} onChange={e => setBonus(e.target.value)} type="number" min="0" placeholder="0"
                     className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 w-24 placeholder-white/40" />}
+                {bonusLocked && saved?.bonus != null && (
+                    <div className="text-white/85 text-sm">Your guess: <span className="font-semibold">{saved.bonus}</span></div>
+                )}
             </div>
 
             {status === 'error' && <div className="text-red-400 text-sm mb-3">{errorMsg}</div>}
