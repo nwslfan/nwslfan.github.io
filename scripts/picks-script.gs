@@ -40,16 +40,31 @@ function submitPicks(body) {
   const { week, teamName, nickname, fullName, email, picks, bonus } = body;
   // picks = { "Team A vs Team B": "Team A", ... }
 
-  const deadline = getWeekDeadline(week);
-  if (deadline && new Date() > deadline) {
-    throw new Error(`Picks for Week ${week} are closed — the deadline (Wednesday noon Pacific) has passed.`);
+  // Per-game lockout: each game locks 2 hours before kickoff. Drop picks
+  // for locked games; reject only if every game in the week has locked.
+  // The bonus locks with the week's first game.
+  const lockInfo = getGameLocks(week);
+  const now = new Date();
+  let submittedPicks = picks || {};
+  let bonusVal = bonus;
+  if (lockInfo) {
+    const cols = Object.keys(lockInfo.locks);
+    if (cols.length > 0 && cols.every(col => now >= lockInfo.locks[col])) {
+      throw new Error(`Picks for Week ${week} are closed — every game has locked (picks lock 2 hours before kickoff).`);
+    }
+    const filtered = {};
+    Object.keys(submittedPicks).forEach(col => {
+      if (!(lockInfo.locks[col] && now >= lockInfo.locks[col])) filtered[col] = submittedPicks[col];
+    });
+    submittedPicks = filtered;
+    if (lockInfo.firstLock && now >= lockInfo.firstLock) bonusVal = undefined;
   }
 
   const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
   const tabName = `Week ${week}`;
 
   // Build ordered game columns from submitted picks
-  const gameCols = Object.keys(picks);
+  const gameCols = Object.keys(submittedPicks);
 
   // Ensure week tab exists with correct headers
   let sheet = ss.getSheetByName(tabName);
@@ -95,16 +110,24 @@ function submitPicks(body) {
     }
   }
 
-  // Build row values in header order
+  // Build row values in header order, merging with the player's existing
+  // row so a late update never wipes picks for games that already locked.
+  const existingVals = existingRow > 0
+    ? sheet.getRange(existingRow, 1, 1, headers.length).getValues()[0]
+    : null;
   const ts = new Date().toISOString();
-  const row = headers.map(h => {
+  const row = headers.map((h, i) => {
     if (h === 'Timestamp') return ts;
     if (h === 'Team Name') return teamName || '';
     if (h === 'Team Name/Nickname') return nickname || '';
     if (h === 'Full Name') return fullName || '';
     if (h === 'Email') return email || '';
-    if (h === BONUS_HEADER) return bonus !== undefined ? bonus : '';
-    return picks[h] || '';
+    if (h === BONUS_HEADER) {
+      if (bonusVal !== undefined && bonusVal !== null) return bonusVal;
+      return existingVals ? existingVals[i] : '';
+    }
+    if (submittedPicks[h]) return submittedPicks[h];
+    return existingVals ? existingVals[i] : '';
   });
 
   const safeRow = row.map(sanitizeCell);
@@ -190,55 +213,70 @@ function getPicks(week) {
   return Object.values(byPlayer);
 }
 
-// ── Deadline (mirrors getPicksDeadline in index.html) ─────────────
-// Picks for a week close Wednesday 12:00 PM Pacific on/before the
-// week's first game, derived from the public schedule sheet CSV.
-// Fails open (returns null) if the schedule can't be fetched.
+// ── Per-game locks (mirrors getGameLockTime in index.html) ────────
+// Each game locks 2 hours before its kickoff (Pacific date + Time from
+// the public schedule sheet CSV). Games with no parseable time lock at
+// midnight Pacific on their game day. Returns
+// { locks: { "Home vs Away": Date }, firstLock: Date }, or null (fail
+// open, no locking) if the schedule can't be fetched.
 
-function getWeekDeadline(week) {
+function getGameLocks(week) {
   try {
     const csv = UrlFetchApp.fetch(SCHEDULE_CSV_URL).getContentText();
     const rows = Utilities.parseCsv(csv);
     const headers = rows[0];
     const weekCol = headers.indexOf('WEEK');
     const dateCol = headers.indexOf('Date');
+    const timeCol = headers.indexOf('Time');
     const homeCol = headers.indexOf('Home Team');
     const awayCol = headers.indexOf('Away Team');
-    if (weekCol < 0 || dateCol < 0) return null;
+    if (weekCol < 0 || dateCol < 0 || homeCol < 0 || awayCol < 0) return null;
 
     let weekNum = 0;
-    let firstGame = null;
+    const locks = {};
+    let firstLock = null;
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (/^WEEK\s+OF/i.test(String(row[weekCol] || '').trim())) weekNum++;
       if (weekNum > week) break;
       if (weekNum !== week) continue;
       const dateStr = String(row[dateCol] || '').trim();
-      if (!dateStr || !String(row[homeCol] || '').trim() || !String(row[awayCol] || '').trim()) continue;
+      const home = String(row[homeCol] || '').trim();
+      const away = String(row[awayCol] || '').trim();
+      if (!dateStr || !home || !away) continue;
       const [m, d, y] = dateStr.split('/').map(Number);
       if (!m || !d || !y) continue;
-      const dt = new Date(y, m - 1, d);
-      if (!firstGame || dt < firstGame) firstGame = dt;
+      const t = parseTime12(timeCol >= 0 ? row[timeCol] : '');
+      const lock = t
+        ? new Date(pacificTime(y, m, d, t.h, t.min).getTime() - 2 * 60 * 60 * 1000)
+        : pacificTime(y, m, d, 0, 0);
+      locks[home + ' vs ' + away] = lock;
+      if (!firstLock || lock < firstLock) firstLock = lock;
     }
-    if (!firstGame) return null;
-
-    // Wednesday on/before the first game
-    const daysToWed = (firstGame.getDay() - 3 + 7) % 7;
-    const wed = new Date(firstGame);
-    wed.setDate(firstGame.getDate() - daysToWed);
-    return pacificNoon(wed.getFullYear(), wed.getMonth() + 1, wed.getDate());
+    if (!firstLock) return null;
+    return { locks: locks, firstLock: firstLock };
   } catch (err) {
     return null;
   }
 }
 
-// Noon Pacific on the given calendar day, DST-safe (same trick as
+function parseTime12(timeStr) {
+  const match = String(timeStr || '').trim().match(/(\d+):(\d+)\s*(AM|PM)/i);
+  if (!match) return null;
+  let h = Number(match[1]);
+  const min = Number(match[2]);
+  if (match[3].toUpperCase() === 'PM' && h !== 12) h += 12;
+  if (match[3].toUpperCase() === 'AM' && h === 12) h = 0;
+  return { h: h, min: min };
+}
+
+// The given Pacific wall-clock time as a Date, DST-safe (same trick as
 // pacificToDate in index.html: guess UTC, correct by the local offset).
-function pacificNoon(y, m, d) {
-  const guess = new Date(Date.UTC(y, m - 1, d, 12, 0));
+function pacificTime(y, m, d, h, min) {
+  const guess = new Date(Date.UTC(y, m - 1, d, h, min));
   const local = Utilities.formatDate(guess, 'America/Los_Angeles', 'HH:mm');
   const parts = local.split(':');
-  const diff = 12 * 60 - (Number(parts[0]) * 60 + Number(parts[1]));
+  const diff = h * 60 + min - (Number(parts[0]) * 60 + Number(parts[1]));
   return new Date(guess.getTime() + diff * 60000);
 }
 

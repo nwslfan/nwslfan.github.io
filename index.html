@@ -456,14 +456,17 @@ function formatLocalTime(dateStr, timeStr) {
     return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true });
 }
 
-function getPicksDeadline(schedWeek) {
-    if (!schedWeek?.matches?.length) return null;
-    const firstGame = new Date(Math.min(...schedWeek.matches.map(m => parseScheduleDate(m.date))));
-    const daysToWed = (firstGame.getDay() - 3 + 7) % 7;
-    const wed = new Date(firstGame);
-    wed.setDate(firstGame.getDate() - daysToWed);
-    const m = wed.getMonth() + 1, d = wed.getDate(), y = wed.getFullYear();
-    return pacificToDate(`${m}/${d}/${y}`, '12:00 PM');
+// Each game locks for picks 2 hours before kickoff. If the schedule has
+// no parseable time, the game locks at midnight Pacific on its game day.
+function getGameLockTime(m) {
+    const kickoff = pacificToDate(m.date, m.time);
+    if (kickoff) return new Date(kickoff.getTime() - 2 * 60 * 60 * 1000);
+    return pacificToDate(m.date, '12:00 AM');
+}
+
+function gameIsLocked(m) {
+    const lock = getGameLockTime(m);
+    return lock ? new Date() >= lock : false;
 }
 
 function dateRange(week) {
@@ -1125,7 +1128,7 @@ function WeekSection({ weekNum, weekDef, weekScore, scheduleWeeks }) {
 // ================================================================
 // MAIN APP
 // ================================================================
-function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
+function PicksForm({ weekNum, sw, knownPlayers, submitters }) {
     const saved = mySavedStore.get(weekNum);
     const [isNew, setIsNew] = useState(false);
     const [player, setPlayer] = useState(saved?.player && knownPlayers.includes(saved.player) ? saved.player : '');
@@ -1138,15 +1141,20 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
     const [errorMsg, setErrorMsg] = useState('');
 
     const games = sw?.matches || [];
-    const gameCols = games.map(m => `${m.home} vs ${m.away}`);
-    const allPicked = gameCols.length > 0 && gameCols.every(col => gamePicks[col]);
+    const openGames = games.filter(m => !gameIsLocked(m));
+    const openCols = openGames.map(m => `${m.home} vs ${m.away}`);
+    // The bonus (total goals this week) locks with the week's first game
+    const bonusLocked = games.some(gameIsLocked);
+    const allPicked = openCols.length > 0 && openCols.every(col => gamePicks[col]);
     const playerName = isNew ? (nickname || fullName || email) : player;
-    const canSubmit = playerName && allPicked && bonus !== '' && status !== 'submitting';
+    const canSubmit = playerName && allPicked && (bonusLocked || bonus !== '') && status !== 'submitting';
 
     async function handleSubmit() {
         setStatus('submitting');
         const bonusNum = parseInt(bonus);
         const bonusVal = Number.isNaN(bonusNum) ? null : bonusNum;
+        const openPicks = {};
+        openCols.forEach(col => { if (gamePicks[col]) openPicks[col] = gamePicks[col]; });
         try {
             const res = await fetch(PICKS_SCRIPT_URL, {
                 method: 'POST',
@@ -1156,13 +1164,13 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                     nickname: isNew ? nickname : '',
                     fullName: isNew ? fullName : '',
                     email: isNew ? email : '',
-                    picks: gamePicks,
-                    bonus: bonusVal,
+                    picks: openPicks,
+                    ...(bonusLocked ? {} : { bonus: bonusVal }),
                 }),
             });
             const json = await res.json();
             if (json.ok) {
-                mySavedStore.set(weekNum, { player: playerName, picks: gamePicks, bonus: bonusVal });
+                mySavedStore.set(weekNum, { player: playerName, picks: gamePicks, bonus: bonusLocked ? (saved?.bonus ?? null) : bonusVal });
                 setStatus('success');
             }
             else { setStatus('error'); setErrorMsg(json.error || 'Submission failed'); }
@@ -1187,7 +1195,7 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                 <h2 className="text-white font-semibold">Week {weekNum} — Make Your Picks</h2>
                 {sw && <span className="text-white/75 text-sm">{dateRange(sw)}</span>}
             </div>
-            {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
+            <div className="text-white/60 text-xs mb-4">Picks lock 2 hours before each game's kickoff — miss a game and you can still pick the rest.</div>
 
             {submitters?.length > 0 && (
                 <div className="mb-5 pb-4 border-b border-white/10">
@@ -1223,13 +1231,18 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                 {games.map(m => {
                     const col = `${m.home} vs ${m.away}`;
                     const picked = gamePicks[col];
+                    const locked = gameIsLocked(m);
                     return (
-                        <div key={col}>
-                            <div className="text-white/60 text-xs mb-1.5">{formatTeamName(m.home)} vs {formatTeamName(m.away)}</div>
+                        <div key={col} className={locked ? 'opacity-50' : ''}>
+                            <div className="text-white/60 text-xs mb-1.5">
+                                {formatTeamName(m.home)} vs {formatTeamName(m.away)}
+                                {locked && <span className="text-white/40 ml-2 uppercase tracking-wider">Locked</span>}
+                            </div>
                             <div className="flex gap-1.5">
                                 {[m.home, 'Draw', m.away].map(opt => (
-                                    <button key={opt} onClick={() => setGamePicks(prev => ({ ...prev, [col]: opt }))}
-                                        className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors ${picked === opt ? 'bg-pink-500 border-pink-500 text-white font-semibold' : 'bg-white/5 border-white/15 text-white/75 hover:bg-white/10'}`}>
+                                    <button key={opt} disabled={locked}
+                                        onClick={() => setGamePicks(prev => ({ ...prev, [col]: opt }))}
+                                        className={`flex-1 text-xs py-1.5 rounded-lg border transition-colors ${picked === opt ? 'bg-pink-500 border-pink-500 text-white font-semibold' : `bg-white/5 border-white/15 text-white/75 ${locked ? '' : 'hover:bg-white/10'}`} ${locked ? 'cursor-not-allowed' : ''}`}>
                                         {formatTeamName(opt)}
                                     </button>
                                 ))}
@@ -1239,11 +1252,15 @@ function PicksForm({ weekNum, sw, knownPlayers, submitters, deadlineStr }) {
                 })}
             </div>
 
-            <div className="mb-5">
+            <div className={`mb-5 ${bonusLocked ? 'opacity-50' : ''}`}>
                 <div className="text-white/85 text-xs uppercase tracking-wider mb-1">Bonus (tiebreaker)</div>
-                <div className="text-white/60 text-xs mb-2">How many total goals will be scored this week?</div>
-                <input value={bonus} onChange={e => setBonus(e.target.value)} type="number" min="0" placeholder="0"
-                    className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 w-24 placeholder-white/40" />
+                <div className="text-white/60 text-xs mb-2">
+                    {bonusLocked
+                        ? 'Locked — the bonus closes when the first game of the week locks.'
+                        : 'How many total goals will be scored this week?'}
+                </div>
+                {!bonusLocked && <input value={bonus} onChange={e => setBonus(e.target.value)} type="number" min="0" placeholder="0"
+                    className="bg-white/10 text-white text-sm rounded-lg px-3 py-2 border border-white/20 w-24 placeholder-white/40" />}
             </div>
 
             {status === 'error' && <div className="text-red-400 text-sm mb-3">{errorMsg}</div>}
@@ -1471,7 +1488,7 @@ function App() {
 
                 <CollapsibleCard title="How It Works">
                     <div className="p-5 text-white/85 text-sm leading-relaxed">
-                        An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, select the teams you think will WIN or DRAW. All submissions must be completed by Wednesdays at 12pm PT. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players. You must submit picks for at least 10 weeks to be eligible to win. Submit your <strong className="text-white">one time $5 entry fee</strong> to Rachel-Syko via Venmo by April 30th.
+                        An easy way to follow the NWSL together — celebrating wins and laughing at bad picks along the way. Each week, select the teams you think will WIN or DRAW. Picks for each game lock 2 hours before kickoff — if you miss some games, you can still submit picks for the rest of the week. You get 1 point for each correct pick, plus a bonus point if you correctly pick a winner chosen by fewer than 30% of players. You must submit picks for at least 10 weeks to be eligible to win. Submit your <strong className="text-white">one time $5 entry fee</strong> to Rachel-Syko via Venmo by April 30th.
                         <div className="mt-3 pt-3 border-t border-white/10 text-white/70 text-xs space-y-1 text-center">
                             <div>Ties are broken in order:</div>
                             <div><span className="text-green-400">✓</span> most correct picks</div>
@@ -1512,14 +1529,11 @@ function App() {
                             {displayWeek!==null && (() => {
                                 const weekDef = picks?.find(w => w.week === displayWeek);
                                 const sw = scheduleWeeks.find(w => w.weekNum === displayWeek);
-                                const deadline = sw ? getPicksDeadline(sw) : null;
-                                const deadlineStr = deadline ? deadline.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' }) + ' at ' + deadline.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit', hour12: true, timeZoneName: 'short' }) : null;
-
                                 // Weeks with picksUrl use formClosesAt only (or are always closed if unset).
-                                // Script-based weeks (no picksUrl) are open until the schedule deadline.
+                                // Script-based weeks (no picksUrl) stay open while any game is still unlocked.
                                 const isFormOpen = weekDef?.picksUrl
                                     ? (weekDef.formClosesAt ? new Date() < new Date(weekDef.formClosesAt) : false)
-                                    : (PICKS_SCRIPT_URL && deadline ? new Date() < deadline : false);
+                                    : (PICKS_SCRIPT_URL && sw ? sw.matches.some(m => !gameIsLocked(m)) : false);
 
                                 if (weekDef && !isFormOpen) return (
                                     <WeekSection weekNum={displayWeek} weekDef={weekDef}
@@ -1532,7 +1546,7 @@ function App() {
                                 if (PICKS_SCRIPT_URL && sw) {
                                     const knownPlayers = (computed?.standings?.map(s => s.player) || []).slice().sort((a, b) => a.localeCompare(b));
                                     return <PicksForm key={displayWeek} weekNum={displayWeek} sw={sw} knownPlayers={knownPlayers}
-                                        submitters={submitters} deadlineStr={deadlineStr} />;
+                                        submitters={submitters} />;
                                 }
 
                                 // Fallback: link to Google Form
@@ -1541,7 +1555,7 @@ function App() {
                                     <div className="p-5 text-center">
                                         <div className="text-white text-lg font-semibold mb-1">Make your picks for Week {displayWeek}</div>
                                         {sw && <div className="text-white/75 text-sm mb-1">{dateRange(sw)}</div>}
-                                        {deadlineStr && <div className="text-white/60 text-xs mb-4">Submit by {deadlineStr}</div>}
+                                        <div className="text-white/60 text-xs mb-4">Picks lock 2 hours before each game's kickoff</div>
                                         {weekConfig?.formUrl
                                             ? <a href={weekConfig.formUrl} target="_blank" rel="noopener noreferrer"
                                                 className="inline-block bg-pink-500 hover:bg-pink-400 text-white font-semibold px-6 py-2 rounded-full text-sm transition-colors">
