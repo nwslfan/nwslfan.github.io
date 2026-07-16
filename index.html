@@ -1399,6 +1399,29 @@ function App() {
                 });
             });
 
+            // Override sheet dates/times with ESPN kickoff times from results.json
+            // (authoritative when a game gets moved and the sheet is stale). Matched
+            // by teams + date proximity — the same pairing can recur later in the season.
+            const kickoffs = cached?.kickoffs || [];
+            if (kickoffs.length) liveSchedule.forEach(sw => {
+                sw.matches.forEach(m => {
+                    const sheetDate = parseScheduleDate(m.date);
+                    const k = kickoffs.find(k => k.kickoff && k.home && k.away &&
+                        teamsMatch(k.home, m.home) && teamsMatch(k.away, m.away) &&
+                        Math.abs(new Date(k.kickoff) - sheetDate) < 2.5 * 24 * 60 * 60 * 1000);
+                    if (!k) return;
+                    const d = new Date(k.kickoff);
+                    if (Number.isNaN(d.getTime())) return;
+                    const parts = new Intl.DateTimeFormat('en-US', {
+                        timeZone: 'America/Los_Angeles', year: 'numeric', month: 'numeric', day: 'numeric',
+                        weekday: 'long', hour: 'numeric', minute: '2-digit', hour12: true
+                    }).formatToParts(d).reduce((a, {type, value}) => ({...a, [type]: value}), {});
+                    m.date = `${parts.month}/${parts.day}/${parts.year}`;
+                    m.day = parts.weekday;
+                    m.time = `${parts.hour}:${parts.minute} ${parts.dayPeriod}`;
+                });
+            });
+
             const errs = [];
             const loaded = picksResults.map(({ wk, picks, ok, error }) => {
                 if (!ok) { errs.push(`Week ${wk.week}: ${error}`); return { ...wk, picks: [], results: {} }; }

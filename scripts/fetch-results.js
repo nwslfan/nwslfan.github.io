@@ -17,6 +17,15 @@ const res = await fetch(url);
 if (!res.ok) { console.error(`ESPN error: ${res.status}`); process.exit(1); }
 const data = await res.json();
 
+// Kickoff datetimes for ALL season games (ESPN is authoritative when the
+// schedule sheet is stale) — used for the per-game pick lockout.
+const kickoffs = (data.events || []).map(e => {
+    const comp = e.competitions[0];
+    const home = comp.competitors.find(c => c.homeAway === 'home');
+    const away = comp.competitors.find(c => c.homeAway === 'away');
+    return { kickoff: e.date, home: home?.team.displayName, away: away?.team.displayName };
+});
+
 const games = (data.events || [])
     .filter(e => e.status.type.completed)
     .map(e => {
@@ -31,6 +40,6 @@ const games = (data.events || [])
         return { date, home: home.team.displayName, away: away.team.displayName, winner, score };
     });
 
-const out = { updatedAt: new Date().toISOString(), games };
+const out = { updatedAt: new Date().toISOString(), games, kickoffs };
 writeFileSync(OUT, JSON.stringify(out, null, 2));
-console.log(`Wrote ${games.length} completed games to results.json`);
+console.log(`Wrote ${games.length} completed games and ${kickoffs.length} kickoff times to results.json`);

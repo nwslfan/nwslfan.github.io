@@ -7,6 +7,7 @@
 const SPREADSHEET_ID = '1oZCW1_eE2sBVyG9HgApT6EF4NTXfx5FiICsayko6xJI';
 const PLAYERS_TAB = 'Players';
 const SCHEDULE_CSV_URL = 'https://docs.google.com/spreadsheets/d/1x6eyrqwe64kLfzvKfkP6x1mAOHQTnA9SA4WQMacHdFY/export?format=csv&gid=0';
+const RESULTS_JSON_URL = 'https://nwslfan.github.io/results.json'; // ESPN kickoff times (refreshed daily by GitHub Actions)
 
 const HEADERS = ['Timestamp', 'Team Name', 'Team Name/Nickname', 'Full Name', 'Email'];
 const BONUS_HEADER = 'BONUS: Total goals scored this week';
@@ -214,8 +215,10 @@ function getPicks(week) {
 }
 
 // ── Per-game locks (mirrors getGameLockTime in index.html) ────────
-// Each game locks 2 hours before its kickoff (Pacific date + Time from
-// the public schedule sheet CSV). Games with no parseable time lock at
+// Each game locks 2 hours before its kickoff. Kickoff comes from the
+// public schedule sheet CSV (Pacific date + Time), overridden by ESPN
+// kickoff times published in results.json when available (handles moved
+// games while the sheet is stale). Games with no time at all lock at
 // midnight Pacific on their game day. Returns
 // { locks: { "Home vs Away": Date }, firstLock: Date }, or null (fail
 // open, no locking) if the schedule can't be fetched.
@@ -233,8 +236,7 @@ function getGameLocks(week) {
     if (weekCol < 0 || dateCol < 0 || homeCol < 0 || awayCol < 0) return null;
 
     let weekNum = 0;
-    const locks = {};
-    let firstLock = null;
+    const games = [];
     for (let i = 1; i < rows.length; i++) {
       const row = rows[i];
       if (/^WEEK\s+OF/i.test(String(row[weekCol] || '').trim())) weekNum++;
@@ -247,17 +249,57 @@ function getGameLocks(week) {
       const [m, d, y] = dateStr.split('/').map(Number);
       if (!m || !d || !y) continue;
       const t = parseTime12(timeCol >= 0 ? row[timeCol] : '');
-      const lock = t
-        ? new Date(pacificTime(y, m, d, t.h, t.min).getTime() - 2 * 60 * 60 * 1000)
-        : pacificTime(y, m, d, 0, 0);
-      locks[home + ' vs ' + away] = lock;
-      if (!firstLock || lock < firstLock) firstLock = lock;
+      games.push({
+        home: home, away: away,
+        sheetDay: pacificTime(y, m, d, 0, 0),
+        kickoff: t ? pacificTime(y, m, d, t.h, t.min) : null,
+      });
     }
-    if (!firstLock) return null;
+    if (!games.length) return null;
+
+    // Override with ESPN kickoff times. Matched by teams + date proximity
+    // (the same pairing can recur later in the season). Fails open to
+    // sheet times if results.json can't be fetched.
+    try {
+      const data = JSON.parse(UrlFetchApp.fetch(RESULTS_JSON_URL).getContentText());
+      const kickoffs = (data && data.kickoffs) || [];
+      games.forEach(g => {
+        const k = kickoffs.find(k => k.kickoff && k.home && k.away &&
+          teamsMatch(k.home, g.home) && teamsMatch(k.away, g.away) &&
+          Math.abs(new Date(k.kickoff) - g.sheetDay) < 2.5 * 24 * 60 * 60 * 1000);
+        if (k) {
+          const d = new Date(k.kickoff);
+          if (!isNaN(d.getTime())) g.kickoff = d;
+        }
+      });
+    } catch (err) {}
+
+    const locks = {};
+    let firstLock = null;
+    games.forEach(g => {
+      const lock = g.kickoff
+        ? new Date(g.kickoff.getTime() - 2 * 60 * 60 * 1000)
+        : g.sheetDay; // no parseable time: lock at midnight Pacific on game day
+      locks[g.home + ' vs ' + g.away] = lock;
+      if (!firstLock || lock < firstLock) firstLock = lock;
+    });
     return { locks: locks, firstLock: firstLock };
   } catch (err) {
     return null;
   }
+}
+
+// Loose team name matching, ported from index.html
+function normTeam(s) {
+  return String(s).toLowerCase()
+    .replace(/\s*fc\s*$/i, '')
+    .replace(/^kc\b/, 'kansas city')
+    .replace(/\bbay\b$/, 'bay fc')
+    .trim();
+}
+function teamsMatch(a, b) {
+  const na = normTeam(a), nb = normTeam(b);
+  return na === nb || na.indexOf(nb) >= 0 || nb.indexOf(na) >= 0;
 }
 
 function parseTime12(timeStr) {
