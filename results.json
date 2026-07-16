@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-16T03:01:27.149Z",
+  "updatedAt": "2026-07-16T03:13:40.229Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -700,6 +700,508 @@
       "away": "Utah Royals",
       "winner": "Chicago Stars FC",
       "score": "3-2"
+    }
+  ],
+  "kickoffs": [
+    {
+      "kickoff": "2026-03-14T00:00Z",
+      "home": "Washington Spirit",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-03-14T16:30Z",
+      "home": "Boston Legacy FC",
+      "away": "Gotham FC"
+    },
+    {
+      "kickoff": "2026-03-14T20:00Z",
+      "home": "Kansas City Current",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-03-14T22:30Z",
+      "home": "Bay FC",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-03-14T23:00Z",
+      "home": "North Carolina Courage",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-03-15T00:45Z",
+      "home": "San Diego Wave FC",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-03-15T20:00Z",
+      "home": "Orlando Pride",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-03-15T23:00Z",
+      "home": "Angel City FC",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-03-21T00:00Z",
+      "home": "Orlando Pride",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-03-21T00:00Z",
+      "home": "Racing Louisville FC",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-03-21T02:00Z",
+      "home": "Portland Thorns FC",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-03-21T20:00Z",
+      "home": "Houston Dash",
+      "away": "Boston Legacy FC"
+    },
+    {
+      "kickoff": "2026-03-21T22:30Z",
+      "home": "Gotham FC",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-03-22T00:45Z",
+      "home": "Bay FC",
+      "away": "Angel City FC"
+    },
+    {
+      "kickoff": "2026-03-22T18:00Z",
+      "home": "Chicago Stars FC",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-03-22T23:00Z",
+      "home": "Utah Royals",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-03-25T23:00Z",
+      "home": "Gotham FC",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-03-25T23:00Z",
+      "home": "Washington Spirit",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-03-26T00:00Z",
+      "home": "Chicago Stars FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-03-26T01:00Z",
+      "home": "Seattle Reign FC",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-03-26T02:00Z",
+      "home": "San Diego Wave FC",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-03-28T02:00Z",
+      "home": "Angel City FC",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-03-28T16:00Z",
+      "home": "Boston Legacy FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-03-28T18:00Z",
+      "home": "Denver Summit FC",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-03-28T20:00Z",
+      "home": "Portland Thorns FC",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-03-28T22:30Z",
+      "home": "Seattle Reign FC",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-03-28T23:00Z",
+      "home": "North Carolina Courage",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-03-29T00:45Z",
+      "home": "San Diego Wave FC",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-03-29T23:00Z",
+      "home": "Gotham FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-04-03T23:00Z",
+      "home": "Boston Legacy FC",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-04-04T00:00Z",
+      "home": "Orlando Pride",
+      "away": "Angel City FC"
+    },
+    {
+      "kickoff": "2026-04-04T00:30Z",
+      "home": "Houston Dash",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-04-04T01:00Z",
+      "home": "Utah Royals",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-04-04T20:00Z",
+      "home": "Kansas City Current",
+      "away": "Gotham FC"
+    },
+    {
+      "kickoff": "2026-04-04T22:30Z",
+      "home": "North Carolina Courage",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-04-05T00:45Z",
+      "home": "Seattle Reign FC",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-04-05T21:00Z",
+      "home": "Bay FC",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-04-24T21:30Z",
+      "home": "Racing Louisville FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-04-25T00:00Z",
+      "home": "Washington Spirit",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-04-25T17:00Z",
+      "home": "Gotham FC",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-04-25T22:30Z",
+      "home": "Chicago Stars FC",
+      "away": "Boston Legacy FC"
+    },
+    {
+      "kickoff": "2026-04-26T00:00Z",
+      "home": "Houston Dash",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-04-26T00:45Z",
+      "home": "Denver Summit FC",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-04-26T22:00Z",
+      "home": "Angel City FC",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-04-27T00:00Z",
+      "home": "Seattle Reign FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-04-29T23:00Z",
+      "home": "Boston Legacy FC",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-04-29T23:00Z",
+      "home": "Washington Spirit",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-04-30T00:00Z",
+      "home": "Chicago Stars FC",
+      "away": "Gotham FC"
+    },
+    {
+      "kickoff": "2026-04-30T02:00Z",
+      "home": "Portland Thorns FC",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-05-02T00:00Z",
+      "home": "Houston Dash",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-05-02T20:00Z",
+      "home": "Orlando Pride",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-05-02T22:30Z",
+      "home": "North Carolina Courage",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-05-03T00:45Z",
+      "home": "Angel City FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-05-03T17:00Z",
+      "home": "Chicago Stars FC",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-05-03T19:00Z",
+      "home": "Boston Legacy FC",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-05-03T21:00Z",
+      "home": "Gotham FC",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-05-03T23:00Z",
+      "home": "San Diego Wave FC",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-05-07T02:00Z",
+      "home": "Utah Royals",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-05-08T22:30Z",
+      "home": "Racing Louisville FC",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-05-09T00:00Z",
+      "home": "Orlando Pride",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-05-09T22:30Z",
+      "home": "Gotham FC",
+      "away": "Boston Legacy FC"
+    },
+    {
+      "kickoff": "2026-05-10T00:00Z",
+      "home": "Houston Dash",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-05-10T00:45Z",
+      "home": "Angel City FC",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-05-10T16:25Z",
+      "home": "Kansas City Current",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-05-10T20:00Z",
+      "home": "Bay FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-05-10T23:00Z",
+      "home": "Seattle Reign FC",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-05-12T23:00Z",
+      "home": "Boston Legacy FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-05-16T00:00Z",
+      "home": "Kansas City Current",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-05-16T02:00Z",
+      "home": "Bay FC",
+      "away": "Boston Legacy FC"
+    },
+    {
+      "kickoff": "2026-05-16T02:00Z",
+      "home": "San Diego Wave FC",
+      "away": "Washington Spirit"
+    },
+    {
+      "kickoff": "2026-05-16T02:00Z",
+      "home": "Seattle Reign FC",
+      "away": "Gotham FC"
+    },
+    {
+      "kickoff": "2026-05-16T22:30Z",
+      "home": "North Carolina Courage",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-05-17T00:45Z",
+      "home": "Denver Summit FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-05-17T22:00Z",
+      "home": "Portland Thorns FC",
+      "away": "Angel City FC"
+    },
+    {
+      "kickoff": "2026-05-18T00:00Z",
+      "home": "Utah Royals",
+      "away": "Racing Louisville FC"
+    },
+    {
+      "kickoff": "2026-05-21T00:00Z",
+      "home": "Houston Dash",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-05-21T02:00Z",
+      "home": "Angel City FC",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-05-21T02:00Z",
+      "home": "Portland Thorns FC",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-05-23T00:00Z",
+      "home": "Boston Legacy FC",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-05-23T20:00Z",
+      "home": "Racing Louisville FC",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-05-23T22:30Z",
+      "home": "Utah Royals",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-05-24T00:45Z",
+      "home": "Houston Dash",
+      "away": "Angel City FC"
+    },
+    {
+      "kickoff": "2026-05-24T17:00Z",
+      "home": "Kansas City Current",
+      "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-05-24T21:00Z",
+      "home": "Bay FC",
+      "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-05-24T23:00Z",
+      "home": "San Diego Wave FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-05-29T23:00Z",
+      "home": "Orlando Pride",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-05-30T00:00Z",
+      "home": "Racing Louisville FC",
+      "away": "Denver Summit FC"
+    },
+    {
+      "kickoff": "2026-05-30T17:30Z",
+      "home": "Kansas City Current",
+      "away": "Boston Legacy FC"
+    },
+    {
+      "kickoff": "2026-05-30T20:00Z",
+      "home": "Portland Thorns FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-05-30T22:30Z",
+      "home": "Washington Spirit",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-05-31T17:00Z",
+      "home": "Chicago Stars FC",
+      "away": "San Diego Wave FC"
+    },
+    {
+      "kickoff": "2026-05-31T19:00Z",
+      "home": "Gotham FC",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-05-31T23:00Z",
+      "home": "Angel City FC",
+      "away": "North Carolina Courage"
+    },
+    {
+      "kickoff": "2026-07-04T00:00Z",
+      "home": "Washington Spirit",
+      "away": "Houston Dash"
+    },
+    {
+      "kickoff": "2026-07-04T01:30Z",
+      "home": "Denver Summit FC",
+      "away": "Kansas City Current"
+    },
+    {
+      "kickoff": "2026-07-04T02:00Z",
+      "home": "Angel City FC",
+      "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-07-04T23:30Z",
+      "home": "North Carolina Courage",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-07-05T00:45Z",
+      "home": "San Diego Wave FC",
+      "away": "Gotham FC"
+    },
+    {
+      "kickoff": "2026-07-05T16:00Z",
+      "home": "Boston Legacy FC",
+      "away": "Bay FC"
+    },
+    {
+      "kickoff": "2026-07-05T21:00Z",
+      "home": "Chicago Stars FC",
+      "away": "Utah Royals"
     }
   ]
 }
