@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-17T10:41:21.568Z",
+  "updatedAt": "2026-07-18T10:14:47.745Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -777,6 +777,13 @@
       "away": "Washington Spirit",
       "winner": "Gotham FC",
       "score": "1-0"
+    },
+    {
+      "date": "2026-07-18",
+      "home": "Kansas City Current",
+      "away": "San Diego Wave FC",
+      "winner": "Draw",
+      "score": "2-2"
     }
   ],
   "kickoffs": [
