@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-18T10:14:47.745Z",
+  "updatedAt": "2026-07-19T10:22:24.209Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -784,6 +784,48 @@
       "away": "San Diego Wave FC",
       "winner": "Draw",
       "score": "2-2"
+    },
+    {
+      "date": "2026-07-18",
+      "home": "Denver Summit FC",
+      "away": "Portland Thorns FC",
+      "winner": "Denver Summit FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-07-18",
+      "home": "Gotham FC",
+      "away": "Seattle Reign FC",
+      "winner": "Gotham FC",
+      "score": "3-2"
+    },
+    {
+      "date": "2026-07-18",
+      "home": "Bay FC",
+      "away": "North Carolina Courage",
+      "winner": "Bay FC",
+      "score": "3-0"
+    },
+    {
+      "date": "2026-07-18",
+      "home": "Chicago Stars FC",
+      "away": "Angel City FC",
+      "winner": "Angel City FC",
+      "score": "0-2"
+    },
+    {
+      "date": "2026-07-19",
+      "home": "Utah Royals",
+      "away": "Orlando Pride",
+      "winner": "Utah Royals",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-07-19",
+      "home": "Racing Louisville FC",
+      "away": "Houston Dash",
+      "winner": "Draw",
+      "score": "1-1"
     }
   ],
   "kickoffs": [
@@ -1348,14 +1390,14 @@
       "away": "San Diego Wave FC"
     },
     {
-      "kickoff": "2026-07-18T16:00Z",
-      "home": "Gotham FC",
-      "away": "Seattle Reign FC"
-    },
-    {
-      "kickoff": "2026-07-18T18:00Z",
+      "kickoff": "2026-07-18T18:15Z",
       "home": "Denver Summit FC",
       "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-07-18T18:30Z",
+      "home": "Gotham FC",
+      "away": "Seattle Reign FC"
     },
     {
       "kickoff": "2026-07-18T20:00Z",
@@ -1368,14 +1410,14 @@
       "away": "Angel City FC"
     },
     {
-      "kickoff": "2026-07-19T00:00Z",
-      "home": "Racing Louisville FC",
-      "away": "Houston Dash"
-    },
-    {
       "kickoff": "2026-07-19T00:45Z",
       "home": "Utah Royals",
       "away": "Orlando Pride"
+    },
+    {
+      "kickoff": "2026-07-19T01:00Z",
+      "home": "Racing Louisville FC",
+      "away": "Houston Dash"
     },
     {
       "kickoff": "2026-07-19T23:00Z",
