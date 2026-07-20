@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-19T10:22:24.209Z",
+  "updatedAt": "2026-07-20T11:39:55.464Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -826,6 +826,13 @@
       "away": "Houston Dash",
       "winner": "Draw",
       "score": "1-1"
+    },
+    {
+      "date": "2026-07-19",
+      "home": "Boston Legacy FC",
+      "away": "Washington Spirit",
+      "winner": "Washington Spirit",
+      "score": "1-2"
     }
   ],
   "kickoffs": [
