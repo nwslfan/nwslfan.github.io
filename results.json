@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-25T10:23:15.461Z",
+  "updatedAt": "2026-07-26T10:39:38.306Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -854,6 +854,20 @@
       "away": "Gotham FC",
       "winner": "Draw",
       "score": "2-2"
+    },
+    {
+      "date": "2026-07-25",
+      "home": "Boston Legacy FC",
+      "away": "Kansas City Current",
+      "winner": "Boston Legacy FC",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-07-25",
+      "home": "North Carolina Courage",
+      "away": "Utah Royals",
+      "winner": "Utah Royals",
+      "score": "1-4"
     }
   ],
   "kickoffs": [
