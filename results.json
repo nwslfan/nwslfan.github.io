@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-07-29T11:19:36.874Z",
+  "updatedAt": "2026-07-30T11:02:26.935Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -889,6 +889,27 @@
       "away": "Racing Louisville FC",
       "winner": "Racing Louisville FC",
       "score": "1-2"
+    },
+    {
+      "date": "2026-07-30",
+      "home": "Kansas City Current",
+      "away": "Racing Louisville FC",
+      "winner": "Kansas City Current",
+      "score": "5-1"
+    },
+    {
+      "date": "2026-07-30",
+      "home": "Utah Royals",
+      "away": "Washington Spirit",
+      "winner": "Washington Spirit",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-07-30",
+      "home": "Bay FC",
+      "away": "Gotham FC",
+      "winner": "Gotham FC",
+      "score": "0-1"
     }
   ],
   "kickoffs": [
