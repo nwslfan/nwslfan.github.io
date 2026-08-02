@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-01T10:36:12.142Z",
+  "updatedAt": "2026-08-02T10:29:30.047Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -917,6 +917,34 @@
       "away": "Orlando Pride",
       "winner": "North Carolina Courage",
       "score": "5-0"
+    },
+    {
+      "date": "2026-08-01",
+      "home": "Racing Louisville FC",
+      "away": "Chicago Stars FC",
+      "winner": "Racing Louisville FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-08-01",
+      "home": "Kansas City Current",
+      "away": "Angel City FC",
+      "winner": "Draw",
+      "score": "1-1"
+    },
+    {
+      "date": "2026-08-02",
+      "home": "Houston Dash",
+      "away": "Gotham FC",
+      "winner": "Gotham FC",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-08-02",
+      "home": "Bay FC",
+      "away": "Seattle Reign FC",
+      "winner": "Seattle Reign FC",
+      "score": "2-3"
     }
   ],
   "kickoffs": [
