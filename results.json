@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-05T11:15:21.769Z",
+  "updatedAt": "2026-08-06T11:16:00.230Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -966,6 +966,13 @@
       "away": "Boston Legacy FC",
       "winner": "Draw",
       "score": "1-1"
+    },
+    {
+      "date": "2026-08-06",
+      "home": "Denver Summit FC",
+      "away": "North Carolina Courage",
+      "winner": "North Carolina Courage",
+      "score": "0-2"
     }
   ],
   "kickoffs": [
