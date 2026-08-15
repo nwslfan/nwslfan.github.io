@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-14T09:54:19.699Z",
+  "updatedAt": "2026-08-15T09:19:28.274Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1029,6 +1029,34 @@
       "away": "Angel City FC",
       "winner": "Draw",
       "score": "2-2"
+    },
+    {
+      "date": "2026-08-15",
+      "home": "Gotham FC",
+      "away": "Kansas City Current",
+      "winner": "Gotham FC",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-08-15",
+      "home": "San Diego Wave FC",
+      "away": "Denver Summit FC",
+      "winner": "Draw",
+      "score": "1-1"
+    },
+    {
+      "date": "2026-08-15",
+      "home": "Seattle Reign FC",
+      "away": "Chicago Stars FC",
+      "winner": "Seattle Reign FC",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-08-15",
+      "home": "Utah Royals",
+      "away": "Bay FC",
+      "winner": "Utah Royals",
+      "score": "3-2"
     }
   ],
   "kickoffs": [
