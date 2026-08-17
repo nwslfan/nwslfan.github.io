@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-16T09:21:27.236Z",
+  "updatedAt": "2026-08-17T09:35:06.623Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1071,6 +1071,20 @@
       "away": "Orlando Pride",
       "winner": "Portland Thorns FC",
       "score": "2-1"
+    },
+    {
+      "date": "2026-08-16",
+      "home": "North Carolina Courage",
+      "away": "Houston Dash",
+      "winner": "Houston Dash",
+      "score": "2-3"
+    },
+    {
+      "date": "2026-08-17",
+      "home": "Angel City FC",
+      "away": "Washington Spirit",
+      "winner": "Draw",
+      "score": "1-1"
     }
   ],
   "kickoffs": [
