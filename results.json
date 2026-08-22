@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-21T09:30:19.730Z",
+  "updatedAt": "2026-08-22T09:21:20.674Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1099,6 +1099,13 @@
       "away": "Chicago Stars FC",
       "winner": "Houston Dash",
       "score": "5-0"
+    },
+    {
+      "date": "2026-08-22",
+      "home": "San Diego Wave FC",
+      "away": "Utah Royals",
+      "winner": "San Diego Wave FC",
+      "score": "4-2"
     }
   ],
   "kickoffs": [
