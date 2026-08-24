@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-23T09:21:40.936Z",
+  "updatedAt": "2026-08-24T09:40:02.507Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1127,6 +1127,34 @@
       "away": "Denver Summit FC",
       "winner": "Portland Thorns FC",
       "score": "1-0"
+    },
+    {
+      "date": "2026-08-23",
+      "home": "Chicago Stars FC",
+      "away": "Racing Louisville FC",
+      "winner": "Chicago Stars FC",
+      "score": "3-2"
+    },
+    {
+      "date": "2026-08-23",
+      "home": "Washington Spirit",
+      "away": "Orlando Pride",
+      "winner": "Orlando Pride",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-08-23",
+      "home": "Bay FC",
+      "away": "Houston Dash",
+      "winner": "Bay FC",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-08-24",
+      "home": "Angel City FC",
+      "away": "Gotham FC",
+      "winner": "Draw",
+      "score": "0-0"
     }
   ],
   "kickoffs": [
