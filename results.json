@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-08-30T14:13:30.866Z",
+  "updatedAt": "2026-08-31T16:37:21.236Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1197,6 +1197,20 @@
       "away": "Chicago Stars FC",
       "winner": "Denver Summit FC",
       "score": "6-1"
+    },
+    {
+      "date": "2026-08-30",
+      "home": "Washington Spirit",
+      "away": "Bay FC",
+      "winner": "Washington Spirit",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-08-30",
+      "home": "Seattle Reign FC",
+      "away": "Houston Dash",
+      "winner": "Seattle Reign FC",
+      "score": "1-0"
     }
   ],
   "kickoffs": [
