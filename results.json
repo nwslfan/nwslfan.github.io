@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-05T12:16:52.234Z",
+  "updatedAt": "2026-09-06T12:32:18.280Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1232,6 +1232,13 @@
       "away": "Kansas City Current",
       "winner": "Kansas City Current",
       "score": "1-2"
+    },
+    {
+      "date": "2026-09-05",
+      "home": "Racing Louisville FC",
+      "away": "Angel City FC",
+      "winner": "Angel City FC",
+      "score": "0-2"
     }
   ],
   "kickoffs": [
