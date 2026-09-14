@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-09-13T13:35:19.064Z",
+  "updatedAt": "2026-09-14T15:34:15.334Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1316,6 +1316,20 @@
       "away": "Utah Royals",
       "winner": "Utah Royals",
       "score": "0-1"
+    },
+    {
+      "date": "2026-09-13",
+      "home": "Washington Spirit",
+      "away": "Boston Legacy FC",
+      "winner": "Boston Legacy FC",
+      "score": "0-3"
+    },
+    {
+      "date": "2026-09-13",
+      "home": "Portland Thorns FC",
+      "away": "Chicago Stars FC",
+      "winner": "Draw",
+      "score": "1-1"
     }
   ],
   "kickoffs": [
