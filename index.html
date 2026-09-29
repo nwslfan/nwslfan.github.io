@@ -478,6 +478,17 @@ function dateRange(week) {
     return first.getTime() === last.getTime() ? fmt(first) : `${fmt(first)} – ${fmt(last)}`;
 }
 
+// Callback ref for .pills-scroll rows: on mount, scroll the selected week pill to the middle.
+function centerActivePill(el) {
+    if (!el) return;
+    requestAnimationFrame(() => {
+        const pill = el.querySelector('.week-pill-active');
+        if (!pill) return;
+        const r = el.getBoundingClientRect(), p = pill.getBoundingClientRect();
+        el.scrollLeft += p.left - r.left - (r.width - p.width) / 2;
+    });
+}
+
 function currentScheduleWeek(weeks) {
     if (!weeks.length) return null;
     const today = new Date(); today.setHours(0,0,0,0);
@@ -873,7 +884,7 @@ function ScheduleSection({ scheduleWeeks }) {
                     <div className="text-pink-500 text-xs font-bold uppercase tracking-wider">Week {activeWeek.weekNum}</div>
                 </div>
                 {/* Week selector */}
-                <div className="pills-scroll flex gap-1.5 overflow-x-auto">
+                <div className="pills-scroll flex gap-1.5 overflow-x-auto" ref={centerActivePill}>
                     {scheduleWeeks.map(w => {
                         const isCurrent = w.weekNum === currentScheduleWeek(scheduleWeeks)?.weekNum;
                         return (
@@ -1585,7 +1596,7 @@ function App() {
                     ].sort((a, b) => a.weekNum - b.weekNum);
                     return (
                         <>
-                            <div className="pills-scroll flex gap-2 overflow-x-auto px-5 pt-4 mb-6">
+                            <div className="pills-scroll flex gap-2 overflow-x-auto px-5 pt-4 mb-6" ref={centerActivePill}>
                                 {allWeekPills.map(({ weekNum, hasPicks }) => {
                                     const isCurrent = weekNum === currentScheduleWeek(scheduleWeeks)?.weekNum;
                                     return (
