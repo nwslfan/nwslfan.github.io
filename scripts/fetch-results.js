@@ -8,12 +8,13 @@ import { dirname, join } from 'path';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUT = join(__dirname, '..', 'results.json');
 
-const SEASON_START = '20260313';
-const SEASON_END   = '20261231';
+const SEASON = '2026';
 
+// dates must be a single day, month, or year: ESPN started rejecting
+// YYYYMMDD-YYYYMMDD ranges with a 400 in Sept 2026.
 // limit is required: without it ESPN caps the response at 100 events,
 // silently truncating the season around early July.
-const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/usa.nwsl/scoreboard?dates=${SEASON_START}-${SEASON_END}&limit=1000`;
+const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/usa.nwsl/scoreboard?dates=${SEASON}&limit=1000`;
 
 const res = await fetch(url);
 if (!res.ok) { console.error(`ESPN error: ${res.status}`); process.exit(1); }
