@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-02T15:15:41.781Z",
+  "updatedAt": "2026-10-03T14:06:31.721Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1456,6 +1456,20 @@
       "away": "North Carolina Courage",
       "winner": "Utah Royals",
       "score": "2-1"
+    },
+    {
+      "date": "2026-10-03",
+      "home": "Orlando Pride",
+      "away": "San Diego Wave FC",
+      "winner": "San Diego Wave FC",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-10-03",
+      "home": "Seattle Reign FC",
+      "away": "North Carolina Courage",
+      "winner": "North Carolina Courage",
+      "score": "0-1"
     }
   ],
   "kickoffs": [
