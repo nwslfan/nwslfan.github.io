@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-04T14:33:25.741Z",
+  "updatedAt": "2026-10-05T17:43:26.567Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1491,6 +1491,27 @@
       "away": "Boston Legacy FC",
       "winner": "Boston Legacy FC",
       "score": "2-4"
+    },
+    {
+      "date": "2026-10-04",
+      "home": "Gotham FC",
+      "away": "Angel City FC",
+      "winner": "Draw",
+      "score": "1-1"
+    },
+    {
+      "date": "2026-10-04",
+      "home": "Chicago Stars FC",
+      "away": "Denver Summit FC",
+      "winner": "Denver Summit FC",
+      "score": "0-3"
+    },
+    {
+      "date": "2026-10-04",
+      "home": "Houston Dash",
+      "away": "Washington Spirit",
+      "winner": "Washington Spirit",
+      "score": "2-3"
     }
   ],
   "kickoffs": [
