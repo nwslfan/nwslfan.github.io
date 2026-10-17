@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-16T13:41:23.738Z",
+  "updatedAt": "2026-10-17T12:38:17.643Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1512,6 +1512,13 @@
       "away": "Washington Spirit",
       "winner": "Washington Spirit",
       "score": "2-3"
+    },
+    {
+      "date": "2026-10-17",
+      "home": "Boston Legacy FC",
+      "away": "Racing Louisville FC",
+      "winner": "Boston Legacy FC",
+      "score": "2-1"
     }
   ],
   "kickoffs": [
