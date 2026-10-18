@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-17T12:38:17.643Z",
+  "updatedAt": "2026-10-18T12:55:24.715Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1519,6 +1519,34 @@
       "away": "Racing Louisville FC",
       "winner": "Boston Legacy FC",
       "score": "2-1"
+    },
+    {
+      "date": "2026-10-17",
+      "home": "Washington Spirit",
+      "away": "Gotham FC",
+      "winner": "Washington Spirit",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-10-17",
+      "home": "Utah Royals",
+      "away": "Kansas City Current",
+      "winner": "Kansas City Current",
+      "score": "0-2"
+    },
+    {
+      "date": "2026-10-17",
+      "home": "North Carolina Courage",
+      "away": "San Diego Wave FC",
+      "winner": "San Diego Wave FC",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-10-18",
+      "home": "Denver Summit FC",
+      "away": "Angel City FC",
+      "winner": "Angel City FC",
+      "score": "2-3"
     }
   ],
   "kickoffs": [
