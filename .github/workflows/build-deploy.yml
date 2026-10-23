@@ -1,5 +1,8 @@
 name: Build and Deploy
 
+# Pages deploys from the main branch root (only the account owner can switch
+# it to Actions deploys), so this builds index.html from src/index.html and
+# commits it; the branch deploy then publishes it.
 on:
   push:
     branches: [main]
@@ -8,12 +11,10 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write   # to commit refreshed results.json
-  pages: write
-  id-token: write
+  contents: write   # to commit refreshed results.json and built index.html
 
 concurrency:
-  group: pages
+  group: build
   cancel-in-progress: false
 
 jobs:
@@ -28,33 +29,18 @@ jobs:
       - name: Refresh results.json
         run: node scripts/fetch-results.js
 
-      - name: Commit results.json if changed
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add results.json
-          if ! git diff --cached --quiet; then
-            git commit -m "Update results.json [skip ci]"
-            git push
-          fi
-
       - name: Install esbuild
         run: npm install esbuild --no-save --no-audit --no-fund
 
-      - name: Build dist/
+      - name: Build index.html
         run: node scripts/build.js
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Commit results.json and index.html if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add results.json index.html
+          if ! git diff --cached --quiet; then
+            git commit -m "Build index.html and update results.json [skip ci]"
+            git push
+          fi
