@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-24T13:02:38.558Z",
+  "updatedAt": "2026-10-25T13:30:21.205Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1589,6 +1589,20 @@
       "away": "North Carolina Courage",
       "winner": "Portland Thorns FC",
       "score": "1-0"
+    },
+    {
+      "date": "2026-10-24",
+      "home": "Denver Summit FC",
+      "away": "Racing Louisville FC",
+      "winner": "Denver Summit FC",
+      "score": "6-1"
+    },
+    {
+      "date": "2026-10-25",
+      "home": "Angel City FC",
+      "away": "Bay FC",
+      "winner": "Angel City FC",
+      "score": "2-0"
     }
   ],
   "kickoffs": [
