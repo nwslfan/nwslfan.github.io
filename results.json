@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-10-25T13:30:21.205Z",
+  "updatedAt": "2026-10-26T15:43:36.915Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1603,6 +1603,27 @@
       "away": "Bay FC",
       "winner": "Angel City FC",
       "score": "2-0"
+    },
+    {
+      "date": "2026-10-25",
+      "home": "Orlando Pride",
+      "away": "Gotham FC",
+      "winner": "Gotham FC",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-10-25",
+      "home": "Kansas City Current",
+      "away": "Washington Spirit",
+      "winner": "Kansas City Current",
+      "score": "2-1"
+    },
+    {
+      "date": "2026-10-25",
+      "home": "San Diego Wave FC",
+      "away": "Boston Legacy FC",
+      "winner": "Draw",
+      "score": "2-2"
     }
   ],
   "kickoffs": [
