@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-01T15:40:50.870Z",
+  "updatedAt": "2026-11-02T19:02:11.500Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1624,6 +1624,62 @@
       "away": "Boston Legacy FC",
       "winner": "Draw",
       "score": "2-2"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Angel City FC",
+      "away": "Boston Legacy FC",
+      "winner": "Angel City FC",
+      "score": "4-1"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Bay FC",
+      "away": "San Diego Wave FC",
+      "winner": "San Diego Wave FC",
+      "score": "0-1"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Gotham FC",
+      "away": "Utah Royals",
+      "winner": "Gotham FC",
+      "score": "2-0"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Houston Dash",
+      "away": "Portland Thorns FC",
+      "winner": "Portland Thorns FC",
+      "score": "0-2"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "North Carolina Courage",
+      "away": "Denver Summit FC",
+      "winner": "North Carolina Courage",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Racing Louisville FC",
+      "away": "Kansas City Current",
+      "winner": "Kansas City Current",
+      "score": "0-2"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Seattle Reign FC",
+      "away": "Orlando Pride",
+      "winner": "Seattle Reign FC",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-11-01",
+      "home": "Washington Spirit",
+      "away": "Chicago Stars FC",
+      "winner": "Washington Spirit",
+      "score": "2-0"
     }
   ],
   "kickoffs": [
@@ -2826,6 +2882,26 @@
       "kickoff": "2026-11-01T22:00Z",
       "home": "Washington Spirit",
       "away": "Chicago Stars FC"
+    },
+    {
+      "kickoff": "2026-11-07T03:00Z",
+      "home": "San Diego Wave FC",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-11-07T17:00Z",
+      "home": "Kansas City Current",
+      "away": "Angel City FC"
+    },
+    {
+      "kickoff": "2026-11-08T17:30Z",
+      "home": "Gotham FC",
+      "away": "Seattle Reign FC"
+    },
+    {
+      "kickoff": "2026-11-08T20:00Z",
+      "home": "Washington Spirit",
+      "away": "Portland Thorns FC"
     }
   ]
 }
