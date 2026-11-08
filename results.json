@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-07T15:20:11.104Z",
+  "updatedAt": "2026-11-08T15:42:40.982Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1687,6 +1687,13 @@
       "away": "Utah Royals",
       "winner": "Utah Royals",
       "score": "0-1"
+    },
+    {
+      "date": "2026-11-07",
+      "home": "Kansas City Current",
+      "away": "Angel City FC",
+      "winner": "Kansas City Current",
+      "score": "1-0"
     }
   ],
   "kickoffs": [
