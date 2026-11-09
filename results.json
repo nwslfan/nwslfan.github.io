@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-08T15:42:40.982Z",
+  "updatedAt": "2026-11-09T19:25:31.406Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1694,6 +1694,20 @@
       "away": "Angel City FC",
       "winner": "Kansas City Current",
       "score": "1-0"
+    },
+    {
+      "date": "2026-11-08",
+      "home": "Gotham FC",
+      "away": "Seattle Reign FC",
+      "winner": "Gotham FC",
+      "score": "1-0"
+    },
+    {
+      "date": "2026-11-08",
+      "home": "Washington Spirit",
+      "away": "Portland Thorns FC",
+      "winner": "Washington Spirit",
+      "score": "4-1"
     }
   ],
   "kickoffs": [
@@ -2916,6 +2930,16 @@
       "kickoff": "2026-11-08T20:00Z",
       "home": "Washington Spirit",
       "away": "Portland Thorns FC"
+    },
+    {
+      "kickoff": "2026-11-14T17:00Z",
+      "home": "Washington Spirit",
+      "away": "Utah Royals"
+    },
+    {
+      "kickoff": "2026-11-15T20:00Z",
+      "home": "Gotham FC",
+      "away": "Kansas City Current"
     }
   ]
 }
