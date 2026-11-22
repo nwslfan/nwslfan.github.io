@@ -1,5 +1,5 @@
 {
-  "updatedAt": "2026-11-21T16:32:42.797Z",
+  "updatedAt": "2026-11-22T16:50:00.213Z",
   "games": [
     {
       "date": "2026-03-14",
@@ -1719,6 +1719,13 @@
     {
       "date": "2026-11-15",
       "home": "Gotham FC",
+      "away": "Kansas City Current",
+      "winner": "Kansas City Current",
+      "score": "1-2"
+    },
+    {
+      "date": "2026-11-22",
+      "home": "Washington Spirit",
       "away": "Kansas City Current",
       "winner": "Kansas City Current",
       "score": "1-2"
